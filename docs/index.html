@@ -329,6 +329,9 @@
   .arena-cta { position: sticky; bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
   .arena-cta .btn.big { width: 100%; letter-spacing: .06em; }
   .cta-flag { opacity: .9; margin-left: 6px; font-size: .85em; }
+  .btn.big.diff-green { background: linear-gradient(180deg,#3ddc84,#25a55b); border-color: #43e08a; color: #05210f; }
+  .btn.big.diff-yellow { background: linear-gradient(180deg,#ffd34d,#e0a91e); border-color: #ffdd6b; color: #2a1e00; }
+  .btn.big.diff-red { background: linear-gradient(180deg,#ff5f6d,#d43443); border-color: #ff7b86; color: #2a0308; }
   .arena-log { display: flex; flex-direction: column; gap: 4px; }
   .arena-log .lg { font-size: .78rem; color: var(--ink-soft); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 8px; padding: 4px 10px; }
 
@@ -836,14 +839,17 @@
 
   /* ---- derived stat formulas ---- */
   function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
+  // Evolving multiplies an Orbie's HP and DPS: 1st evolution ×2, final form
+  // ×2.5 more (so the fully-evolved form is ×5 the base).
+  function evoMult(stage) { return stage >= 2 ? 5 : (stage === 1 ? 2 : 1); }
   function hitDamage(ob) {
     var r = rarityOf(ob);
-    return Math.max(1, Math.round((1 + r) * (1 + (ob.level - 1) * 0.5) * ob.p));
+    return Math.max(1, Math.round((1 + r) * (1 + (ob.level - 1) * 0.5) * ob.p * evoMult(ob.stage)));
   }
   function attackInterval(ob) { var r = rarityOf(ob); return Math.max(450, 1050 - r * 45); }
   function orbieDps(ob) { return hitDamage(ob) / (attackInterval(ob) / 1000); }
-  // Arena health, scaling with rarity (per the ladder) and level.
-  function orbieHp(ob) { var r = rarityOf(ob); return Math.round((12 + r * 10) * (1 + (ob.level - 1) * 0.35)); }
+  // Arena health, scaling with rarity (per the ladder), level, and evolution.
+  function orbieHp(ob) { var r = rarityOf(ob); return Math.round((12 + r * 10) * (1 + (ob.level - 1) * 0.35) * evoMult(ob.stage)); }
 
   function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(2, floor - 1) * (1 + idx * 0.12)); }
   function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
@@ -2063,10 +2069,13 @@
   }
 
   // Combat power of a leaderboard slot, keyed only by its GLOBAL standing so the
-  // board stays stable as your own team grows.  (Test hook: patched to be weak.)
+  // board stays stable as your own team grows.  Bronze I (gsi ~0) is deliberately
+  // weak; power grows ~11% per rank tier. HP is only ~3.5x DPS — the same order
+  // as a real Orbie — so a comparable-DPS team can actually win.
+  // (Test hook: patched to be weak.)
   function arenaNpcPower(gsiGlobal, seed, k) {
-    var dps = Math.max(1, Math.round((800 + gsiGlobal * 30) * (0.6 + hashRand(seed + k, gsiGlobal) * 1.0)));
-    var hp = Math.max(1, Math.round(dps * (10 + hashRand(seed, gsiGlobal + k * 7) * 14)));
+    var dps = Math.max(1, Math.round(4 * Math.pow(1.11, gsiGlobal / ARENA_POINTS_PER_TIER) * (0.85 + hashRand(seed + k, gsiGlobal) * 0.35)));
+    var hp = Math.max(1, Math.round(dps * 3.5 * (0.9 + hashRand(seed, gsiGlobal + k * 7) * 0.3)));
     return { dps: dps, hp: hp };
   }
 
@@ -2154,9 +2163,18 @@
     var gained = 0;
     if (sim.win) {
       a.wins++;
-      var goal = champ ? (playerTier() + 1) * ARENA_POINTS_PER_TIER : target.points + 1;
-      gained = Math.max(1, goal - a.points);
       var beforeTier = playerTier();
+      if (champ) {
+        gained = Math.max(1, (playerTier() + 1) * ARENA_POINTS_PER_TIER - a.points);
+      } else {
+        // Dominance-based leap: crush a rival (whole team survives) and you rocket
+        // up many ranks; scrape by and you climb just past them. This lets an
+        // over-levelled team fly up until the NPCs finally match its power.
+        var dom = sim.youAlive / Math.max(1, youTeam.length);
+        var leap = dom >= 0.999 ? Math.round(a.points * 0.18 + 25)
+                 : dom >= 0.6 ? 3 : 1;
+        gained = Math.max(1, (target.points - a.points) + leap);
+      }
       a.points = Math.min((ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER, a.points + gained);
       a.log.unshift("🏆 Beat " + target.name + " · +" + gained + " pts");
       if (playerTier() > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(playerTier()) + "!");
@@ -2265,8 +2283,21 @@
 
     var canFight = a.flags > 0 && activeAttackers().length > 0;
     el.challengeBtn.disabled = !canFight;
-    el.challengeBtn.innerHTML = (rank <= 1 ? "CHALLENGE CHAMPION" : "CHALLENGE #" + (rank - 1)) + ' <span class="cta-flag">🎫 1</span>';
+    var target = rank <= 1 ? championNpc() : board[rank - 2];
+    var diff = activeAttackers().length ? difficultyVs(target) : "";
+    el.challengeBtn.className = "btn primary big" + (diff ? " diff-" + diff : "");
+    var diffLbl = diff === "green" ? " · easy" : diff === "yellow" ? " · fair" : diff === "red" ? " · deadly" : "";
+    el.challengeBtn.innerHTML = (rank <= 1 ? "CHALLENGE CHAMPION" : "CHALLENGE #" + (rank - 1)) + diffLbl + ' <span class="cta-flag">🎫 1</span>';
     el.arenaLog.innerHTML = a.log.slice(0, 3).map(function (l) { return '<div class="lg">' + l + '</div>'; }).join("");
+  }
+
+  // Colour the challenge by how your team's power compares to the target's.
+  function difficultyVs(target) {
+    var pPow = teamDps() * Math.max(1, teamHp()), nPow = target.dps * Math.max(1, target.hp);
+    var ratio = nPow / Math.max(1, pPow);
+    if (ratio < 0.7) return "green";
+    if (ratio < 1.0) return "yellow";
+    return "red";
   }
 
   /* ---- Tabs ---- */
