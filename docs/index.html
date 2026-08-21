@@ -655,14 +655,35 @@
     return b;
   }
 
-  // A freshly hatched Orbie with a free slot — just added to the team.
-  function showRevealKeep(ob) {
-    revealMode = "keep";
+  // A freshly hatched Orbie with a free slot — keep it, or sell it for treats.
+  function showRevealRoom(ob) {
+    revealMode = "roomdecide";
     setRevealHead(ob);
-    el.revealMsg.textContent = "Added to your team!";
+    el.revealMsg.textContent = "You hatched a new Orbie! Keep it on your team, or sell it for treats.";
     el.revealActions.innerHTML = "";
-    addRevealBtn("primary", "✓ Nice!", closeReveal);
+    addRevealBtn("primary", "✓ Keep", keepPending);
+    addRevealBtn("sell", "💰 Sell <span class=\"cost\">🍬" + fmt(sellValue(ob)) + "</span>", sellPending);
     el.reveal.classList.add("show");
+  }
+
+  function keepPending() {
+    if (!state.pending) { closeReveal(); return; }
+    if (state.roster.length >= state.holdCap) { showRevealDecide(state.pending); return; } // safety: no room
+    var ob = state.pending;
+    ob._new = true;
+    state.roster.push(ob);
+    timers[ob.id] = Date.now();
+    state.pending = null;
+    closeReveal();
+    renderAll();
+    saveSoon();
+  }
+
+  // Show the right decision overlay for the pending Orbie based on free space.
+  function showPendingDecision() {
+    if (!state.pending) return;
+    if (state.roster.length < state.holdCap) showRevealRoom(state.pending);
+    else showRevealDecide(state.pending);
   }
 
   // Hold is full — the player must decide what to do with the new Orbie.
@@ -736,10 +757,11 @@
     el.reveal.classList.remove("show");
   }
 
-  // Only the "keep" overlay dismisses on a backdrop tap; a full-hold decision
-  // must be made explicitly (sell or replace).
+  // Backdrop tap: with a free slot it defaults to Keep (quick dismiss); a
+  // full-hold decision must be made explicitly (sell or replace).
   el.reveal.addEventListener("click", function (e) {
-    if (revealMode === "keep" && e.target === el.reveal) closeReveal();
+    if (e.target !== el.reveal) return;
+    if (revealMode === "roomdecide") keepPending();
   });
 
   /* ============================================================
@@ -1107,24 +1129,13 @@
   }
 
   function doOpenOrb() {
-    if (state.pending) return; // a full-hold decision is already open
+    if (state.pending) return; // a hatch decision is already open
     if (state.orbs <= 0) { toast("No orbs to open — buy one with gold or clear a boss."); return; }
     state.orbs -= 1;
-    var ob = makeOrbie();
-    if (state.roster.length < state.holdCap) {
-      // room in the hold — keep it right away
-      state.roster.push(ob);
-      timers[ob.id] = Date.now();
-      renderAll();
-      saveSoon();
-      showRevealKeep(ob);
-    } else {
-      // hold full — let the player sell it or replace one they hold
-      state.pending = ob;
-      renderStats();
-      saveSoon();
-      showRevealDecide(ob);
-    }
+    state.pending = makeOrbie();
+    renderStats();
+    saveSoon();
+    showPendingDecision(); // Keep/Sell if there's room, Sell/Replace if full
   }
 
   function doBuyOrb() {
@@ -1200,7 +1211,7 @@
 
   load();
   renderAll();
-  if (state.pending) showRevealDecide(state.pending); // resume a full-hold decision
+  if (state.pending) showPendingDecision(); // resume a hatch decision (keep/sell or sell/replace)
   setInterval(tick, 60);
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
