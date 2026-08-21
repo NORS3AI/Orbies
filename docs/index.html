@@ -179,6 +179,18 @@
     animation: dmgrise .7s ease-out forwards;
   }
   @keyframes dmgrise { from { opacity: 1; transform: translateY(0);} to { opacity: 0; transform: translateY(-52px);} }
+  /* bigger yellow splash for the gold a defeated rock is worth */
+  .gold-float {
+    position: absolute; left: 50%; z-index: 6; pointer-events: none; font-weight: 900;
+    color: #ffce54; text-shadow: 0 2px 8px rgba(0,0,0,0.85), 0 0 14px rgba(255,206,84,0.6);
+    font-size: 2rem; letter-spacing: .01em; white-space: nowrap;
+    animation: goldrise 1s ease-out forwards;
+  }
+  @keyframes goldrise {
+    0%   { opacity: 0; transform: translate(-50%, 8px) scale(.6); }
+    22%  { opacity: 1; transform: translate(-50%, 0) scale(1.15); }
+    100% { opacity: 0; transform: translate(-50%, -78px) scale(1); }
+  }
 
   /* ---- buttons ---- */
   .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0 6px; }
@@ -1395,6 +1407,17 @@
     el.rock.classList.remove("shake"); void el.rock.offsetWidth; el.rock.classList.add("shake");
   }
 
+  // Bigger yellow "+xx" splash for the gold a defeated rock is worth.
+  function spawnGoldFloat(amount) {
+    if (!el.rock.parentNode) return;
+    var g = document.createElement("div");
+    g.className = "gold-float";
+    g.textContent = "+" + fmt(amount) + " 🪙";
+    g.style.top = "18%";
+    el.rock.parentNode.appendChild(g);
+    setTimeout(function () { g.remove(); }, 1000);
+  }
+
   /* ============================================================
      Floor / rock / boss state machine
      ============================================================ */
@@ -1406,6 +1429,7 @@
   function handleRockBreak() {
     var reward = rockReward(state.floor, Math.min(state.rockIndex, ROCKS_PER_FLOOR - 1));
     state.gold += reward;
+    spawnGoldFloat(reward);   // bigger yellow +xx splash of the gold it was worth
     el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
 
     if (state.phase === "rocks") {
