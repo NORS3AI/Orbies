@@ -8,13 +8,9 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 
 ### 👉 https://nors3ai.github.io/Orbies/
 
-That link opens the **main game** — the auto-battler described below. There is also an **expanded build** (an alternate design with a garden, rings, and an arena) at:
+> **Note on the link:** GitHub Pages URLs are **case-sensitive**. The host `nors3ai` is always lowercase, and the path `Orbies` must match the repository name exactly (capital **O**). Use the link exactly as written above — `/orbies/` (lowercase) will **not** work.
 
-### 🌌 https://nors3ai.github.io/Orbies/play/
-
-> **Note on the links:** GitHub Pages URLs are **case-sensitive**. The host `nors3ai` is always lowercase, and the path `Orbies` must match the repository name exactly (capital **O**). Use the links exactly as written above — `/orbies/` (lowercase) will **not** work.
-
-## 🎮 How the main game plays
+## 🎮 How it plays
 
 - **🔮 Hatch Orbs** — You start with **5 orbs**. Open each to reveal an Orbie of a random rarity — you never know what you'll get.
 - **🪨 Auto-Battle** — You **can't tap the rock**. Your Orbies do the work: they take turns striking it for DPS, **up to 8 at a time**, and each broken rock pushes you a floor deeper for more gold.
@@ -35,19 +31,18 @@ That link opens the **main game** — the auto-battler described below. There is
 
 ## 🗂️ Project structure
 
-Everything is a dependency-free static site (plain HTML/CSS/JS):
+The whole game is a single dependency-free static file:
 
 | Path | Purpose |
 | --- | --- |
-| `docs/index.html` | **Main game** — the self-contained auto-battler |
-| `docs/play/` | **Expanded build** — an alternate design (garden, rings, arena) as a multi-file app |
+| `docs/index.html` | The complete game (HTML + CSS + JS, no build step) |
 | `docs/.nojekyll` | Tells Pages to serve the static files as-is |
 
 ## 🚀 Deployment
 
 This site is hosted with **GitHub Pages**, published from the **`/docs` folder** on the **`main`** branch (Settings → Pages → *Deploy from a branch* → `main` `/docs`).
 
-Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**. A `.nojekyll` marker in `docs/` tells Pages to serve the static files as-is (including `docs/play/`), without Jekyll processing.
+Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**. A `.nojekyll` marker in `docs/` tells Pages to serve the static file as-is, without Jekyll processing.
 
 ---
 
