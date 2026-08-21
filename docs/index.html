@@ -260,7 +260,19 @@
   .reveal .emo { font-size: 84px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)); }
   .reveal .rname { font-weight: 800; font-size: 1.4rem; margin-top: 10px; }
   .reveal .rrar { margin-top: 8px; font-weight: 800; font-size: 1.05rem; }
-  .reveal .tap { margin-top: 16px; color: var(--ink-soft); font-size: .8rem; }
+  .reveal .reveal-msg { margin-top: 12px; color: var(--ink-soft); font-size: .86rem; max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.4; }
+  .reveal .reveal-actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
+  .reveal .pick-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 44vh; overflow-y: auto; width: min(340px, 80vw); }
+  .reveal .pick-item {
+    display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-radius: 12px;
+    background: rgba(124,92,255,0.12); border: 1px solid var(--panel-brd);
+    cursor: pointer; text-align: left; color: var(--ink); font-family: var(--font); width: 100%;
+  }
+  .reveal .pick-item:hover { background: rgba(124,92,255,0.24); }
+  .reveal .pick-item .pe { font-size: 26px; line-height: 1; }
+  .reveal .pick-item .pmeta { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .reveal .pick-item .pn { font-weight: 800; font-size: .92rem; }
+  .reveal .pick-item .psub { font-size: .72rem; color: var(--ink-soft); }
 
   /* ---- toast ---- */
   .toast {
@@ -367,7 +379,8 @@
     <div class="emo" id="revealEmo">🥚</div>
     <div class="rname" id="revealName">???</div>
     <div class="rrar" id="revealRar">???</div>
-    <div class="tap">tap to continue</div>
+    <div class="reveal-msg" id="revealMsg"></div>
+    <div class="reveal-actions" id="revealActions"></div>
   </div>
 </div>
 
@@ -519,7 +532,7 @@
   function freshState() {
     return {
       gold: 0, treats: 0, orbs: 5, orbsBought: 0,
-      holdCap: 3, roster: [], nid: 1,
+      holdCap: 3, roster: [], pending: null, nid: 1,
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0
@@ -540,6 +553,7 @@
           state.holdCap = Math.min(MAX_ATTACKERS, Math.max(3, p.holdCap | 0));
           state.nid = Math.max(1, p.nid | 0);
           state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
+          state.pending = (p.pending && sanitizeOrbie(p.pending)) ? p.pending : null;
           state.floor = Math.max(1, p.floor | 0);
           state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
@@ -606,6 +620,8 @@
     revealEmo: document.getElementById("revealEmo"),
     revealName: document.getElementById("revealName"),
     revealRar: document.getElementById("revealRar"),
+    revealMsg: document.getElementById("revealMsg"),
+    revealActions: document.getElementById("revealActions"),
     toast: document.getElementById("toast")
   };
 
@@ -620,15 +636,111 @@
     toastTimer = setTimeout(function () { el.toast.classList.remove("show"); }, 2100);
   }
 
-  function showReveal(ob) {
+  var revealMode = null; // 'keep' | 'decide' | 'pick'
+
+  function setRevealHead(ob) {
     var r = rarityOf(ob);
     el.revealEmo.textContent = ob.e;
     el.revealName.textContent = ob.n;
     el.revealRar.textContent = RARITIES[r];
     el.revealRar.style.color = RARITY_COLORS[r];
+  }
+
+  function addRevealBtn(cls, html, fn) {
+    var b = document.createElement("button");
+    b.className = "btn " + cls;
+    b.innerHTML = html;
+    b.addEventListener("click", fn);
+    el.revealActions.appendChild(b);
+    return b;
+  }
+
+  // A freshly hatched Orbie with a free slot — just added to the team.
+  function showRevealKeep(ob) {
+    revealMode = "keep";
+    setRevealHead(ob);
+    el.revealMsg.textContent = "Added to your team!";
+    el.revealActions.innerHTML = "";
+    addRevealBtn("primary", "✓ Nice!", closeReveal);
     el.reveal.classList.add("show");
   }
-  el.reveal.addEventListener("click", function () { el.reveal.classList.remove("show"); });
+
+  // Hold is full — the player must decide what to do with the new Orbie.
+  function showRevealDecide(ob) {
+    revealMode = "decide";
+    setRevealHead(ob);
+    el.revealMsg.textContent = "Your hold is full. Sell this Orbie for treats, or replace one you're holding.";
+    el.revealActions.innerHTML = "";
+    addRevealBtn("sell", "💰 Sell <span class=\"cost\">🍬" + fmt(sellValue(ob)) + "</span>", sellPending);
+    addRevealBtn("primary", "🔄 Replace", showRevealPick);
+    el.reveal.classList.add("show");
+  }
+
+  // Pick which held Orbie to swap out (it is sold for treats).
+  function showRevealPick() {
+    revealMode = "pick";
+    el.revealMsg.textContent = "Choose an Orbie to replace — it's sold for treats:";
+    el.revealActions.innerHTML = "";
+    var grid = document.createElement("div");
+    grid.className = "pick-grid";
+    state.roster.forEach(function (old) {
+      var r = rarityOf(old);
+      var item = document.createElement("button");
+      item.className = "pick-item";
+      item.innerHTML =
+        '<span class="pe">' + old.e + '</span>' +
+        '<span class="pmeta">' +
+          '<span class="pn">' + old.n + ' · Lv ' + old.level + '</span>' +
+          '<span class="psub" style="color:' + RARITY_COLORS[r] + '">' + RARITIES[r] +
+            ' · ' + (Math.round(orbieDps(old) * 10) / 10) + ' DPS · sell 🍬' + fmt(sellValue(old)) + '</span>' +
+        '</span>';
+      item.addEventListener("click", function () { replaceWith(old); });
+      grid.appendChild(item);
+    });
+    el.revealActions.appendChild(grid);
+    addRevealBtn("small", "← Back", function () { showRevealDecide(state.pending); });
+  }
+
+  function sellPending() {
+    if (!state.pending) { closeReveal(); return; }
+    var gain = sellValue(state.pending);
+    var nm = state.pending.n;
+    state.treats += gain;
+    state.pending = null;
+    closeReveal();
+    renderAll();
+    saveSoon();
+    toast("Sold " + nm + " for 🍬" + gain + " treats.");
+  }
+
+  function replaceWith(old) {
+    if (!state.pending) { closeReveal(); return; }
+    var idx = state.roster.indexOf(old);
+    if (idx < 0) return;
+    var gain = sellValue(old);
+    state.treats += gain;
+    delete timers[old.id];
+    var neu = state.pending;
+    state.roster.splice(idx, 1, neu); // swap the new Orbie into the freed slot
+    neu._new = true;
+    timers[neu.id] = Date.now();
+    state.pending = null;
+    closeReveal();
+    renderAll();
+    saveSoon();
+    toast("Replaced " + old.n + " with " + neu.n + " · +🍬" + gain + " treats.");
+  }
+
+  function closeReveal() {
+    revealMode = null;
+    el.reveal.classList.remove("show");
+  }
+
+  // Only the "keep" overlay dismisses on a backdrop tap; a full-hold decision
+  // must be made explicitly (sell or replace).
+  el.reveal.addEventListener("click", function (e) {
+    if (revealMode === "keep" && e.target === el.reveal) closeReveal();
+  });
 
   /* ============================================================
      Fighters (arena) — rebuilt only when the attacker set changes
@@ -877,10 +989,8 @@
     el.hold.textContent = state.roster.length + "/" + state.holdCap;
     el.teamDps.textContent = fmt(Math.round(teamDps() * 10) / 10) + " DPS";
 
-    var full = state.roster.length >= state.holdCap;
-    el.openOrb.disabled = state.orbs <= 0 || full;
+    el.openOrb.disabled = state.orbs <= 0 || state.pending != null;
     el.openHint.textContent = state.orbs > 0 ? "(" + state.orbs + " left)" : "(none)";
-    if (full && state.orbs > 0) el.openHint.textContent = "(hold full)";
 
     var bc = buyOrbCost();
     el.buyCost.textContent = "🪙" + fmt(bc);
@@ -997,18 +1107,24 @@
   }
 
   function doOpenOrb() {
+    if (state.pending) return; // a full-hold decision is already open
     if (state.orbs <= 0) { toast("No orbs to open — buy one with gold or clear a boss."); return; }
-    if (state.roster.length >= state.holdCap) {
-      toast("Hold is full (" + state.holdCap + "). Sell an Orbie or expand your hold.");
-      return;
-    }
     state.orbs -= 1;
     var ob = makeOrbie();
-    state.roster.push(ob);
-    timers[ob.id] = Date.now();
-    showReveal(ob);
-    renderAll();
-    saveSoon();
+    if (state.roster.length < state.holdCap) {
+      // room in the hold — keep it right away
+      state.roster.push(ob);
+      timers[ob.id] = Date.now();
+      renderAll();
+      saveSoon();
+      showRevealKeep(ob);
+    } else {
+      // hold full — let the player sell it or replace one they hold
+      state.pending = ob;
+      renderStats();
+      saveSoon();
+      showRevealDecide(ob);
+    }
   }
 
   function doBuyOrb() {
@@ -1084,11 +1200,12 @@
 
   load();
   renderAll();
+  if (state.pending) showRevealDecide(state.pending); // resume a full-hold decision
   setInterval(tick, 60);
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
 
-  if (state.roster.length === 0) {
+  if (!state.pending && state.roster.length === 0) {
     setTimeout(function () { toast("Welcome! Open your 5 starter orbs to hatch your first Orbies."); }, 500);
   }
 })();
