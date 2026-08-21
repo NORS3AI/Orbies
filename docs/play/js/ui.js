@@ -313,8 +313,8 @@ function renderArena() {
   const nextIn = a.energy >= TUNE.arenaMaxEnergy
     ? 'full'
     : fmtTime(TUNE.arenaEnergyRegen - ((Date.now() - a.energyAt) / 1000) % TUNE.arenaEnergyRegen);
-  const board = leaderboard().map((row, i) =>
-    `<div class="lb-row ${row.you ? 'you' : ''}"><span class="lb-rank">#${i + 1}</span><span class="lb-name">${row.name}</span><span class="lb-tr">🏆 ${fmt(row.trophies)}</span></div>`
+  const board = leaderboard().map(row =>
+    `<div class="lb-row ${row.you ? 'you' : ''}"><span class="lb-rank">#${row.rank}</span><span class="lb-name">${row.name}</span><span class="lb-tr">🏆 ${fmt(row.trophies)}</span></div>`
   ).join('');
   const log = a.log.length ? a.log.map(l => `<div class="log-line">${l}</div>`).join('') : '<span class="muted">No battles yet.</span>';
 

@@ -73,6 +73,84 @@ const ORBY_DEFS = [
   ['orbomancer', 'Orbomancer', '🔮', 'mythic', 'Cosmic', 'balanced', 'The very first Orby. It remembers when the rocks were young.'],
   ['nyxaria',    'Nyxaria',    '🌙', 'mythic', 'Dark',   'lucky',    'Queen of the quiet hours; the void itself pays her tribute.'],
   ['solaris',    'Solaris Prime','☀️','mythic', 'Light',  'power',    'A captured star, purring contentedly in your pocket.'],
+
+  // ================= Expanded roster =================
+  // ---- Common ----
+  ['snaily',     'Snaily',     '🐌', 'common', 'Earth',    'power',    'Slow, steady, and weirdly good at demolition.'],
+  ['chirpling',  'Chirpling',  '🐤', 'common', 'Air',      'tap',      'Sings a tapping rhythm you cannot help but follow.'],
+  ['tadwick',    'Tadwick',    '🐟', 'common', 'Water',    'balanced', 'Not quite a frog yet, and already a hard worker.'],
+  ['pinepix',    'Pinepix',    '🌲', 'common', 'Nature',   'lucky',    'Sheds little cones that clink suspiciously like coins.'],
+  ['emberling',  'Emberling',  '🔥', 'common', 'Fire',     'tap',      'A spark with two tiny legs and enormous ambition.'],
+  ['pebblepup',  'Pebblepup',  '🐩', 'common', 'Earth',    'balanced', 'Fetches rocks so you have something to break.'],
+  ['droplet',    'Droplet',    '🌧️', 'common', 'Water',    'lucky',    'Wherever it drizzles, small change appears.'],
+  ['fuzzbee',    'Fuzzbee',    '🐞', 'common', 'Nature',   'tap',      'Ladybug luck folded into a hardworking package.'],
+  ['staticat',   'Staticat',   '🐈‍⬛', 'common', 'Electric', 'tap',      'Every pat gives off a small, helpful zap.'],
+  ['minnow',     'Minnow',     '🐡', 'common', 'Water',    'tap',      'Small, spiky, and endlessly enthusiastic.'],
+  ['sootmoth',   'Sootmoth',   '🌫️', 'common', 'Dark',     'lucky',    'Flutters through the soot and comes out shiny.'],
+  ['acoret',     'Acoret',     '🐿️', 'common', 'Nature',   'lucky',    'Hoards acorns and, every so often, gold.'],
+  ['breezle',    'Breezle',    '💨', 'common', 'Air',      'tap',      'A giggling gust that loves to knock on stone.'],
+  ['crablet',    'Crablet',    '🦀', 'common', 'Water',    'power',    'Pinches boulders apart, sideways, out of spite.'],
+
+  // ---- Uncommon ----
+  ['tuskling',   'Tuskling',   '🐗', 'uncommon', 'Earth',    'power',    'Charges rocks like they owe it money.'],
+  ['galepine',   'Galepine',   '🪶', 'uncommon', 'Air',      'tap',      'Rides thermals, then dives on stubborn stones.'],
+  ['reefox',     'Reefox',     '🐙', 'uncommon', 'Water',    'balanced', 'Eight arms means eight times the mining.'],
+  ['glowbug',    'Glowbug',    '🪲', 'uncommon', 'Electric', 'lucky',    'Lights up gold veins with a soft green buzz.'],
+  ['bouldric',   'Bouldric',   '🗿', 'uncommon', 'Earth',    'power',    'An outcrop that up and decided to help out.'],
+  ['frostpaw',   'Frostpaw',   '🐾', 'uncommon', 'Ice',      'power',    'Leaves frozen pawprints and cracked stone.'],
+  ['saplin',     'Saplin',     '🌿', 'uncommon', 'Nature',   'balanced', 'A cheerful shoot that simply refuses to stop growing.'],
+  ['cindercub',  'Cindercub',  '🐅', 'uncommon', 'Fire',     'power',    'Bats rocks to pieces with molten little paws.'],
+  ['brineel',    'Brineel',    '🐍', 'uncommon', 'Water',    'tap',      'Zips through tunnels leaving salt and sparks.'],
+  ['duskraven',  'Duskraven',  '🐦‍⬛', 'uncommon', 'Dark',     'lucky',    'Trades secrets for shiny things at dusk.'],
+  ['flarefin',   'Flarefin',   '🦈', 'uncommon', 'Fire',     'power',    'A shark that runs warm and bites through rock.'],
+  ['meadowlark', 'Meadowlark', '🐦', 'uncommon', 'Air',      'lucky',    'Its morning song makes the whole garden richer.'],
+  ['quartzkit',  'Quartzkit',  '🐇', 'uncommon', 'Earth',    'tap',      'Thumps quartz until it sings and splits.'],
+  ['seedling',   'Seedling',   '🌾', 'uncommon', 'Nature',   'lucky',    'Scatters grain that sometimes lands as coin.'],
+
+  // ---- Rare ----
+  ['thunderroc', 'Thunderroc', '🦤', 'rare', 'Electric', 'power',    'Wingbeats crack like thunder over the deep.'],
+  ['emberox',    'Emberox',    '🐂', 'rare', 'Fire',     'power',    'Snorts embers; its horns split basalt clean.'],
+  ['coralith',   'Coralith',   '🐚', 'rare', 'Water',    'balanced', 'A living reef with a discerning taste for treasure.'],
+  ['verdania',   'Verdania',   '🦥', 'rare', 'Nature',   'lucky',    'So slow it finds the gold everyone else walked past.'],
+  ['plumida',    'Plumida',    '🦚', 'rare', 'Light',    'lucky',    'Fans out feathers that glitter like fresh-minted coins.'],
+  ['gravelox',   'Gravelox',   '🦬', 'rare', 'Earth',    'power',    'A boulder-bison that flattens whatever it charges.'],
+  ['frostfang',  'Frostfang',  '🐊', 'rare', 'Ice',      'power',    'A cold-blooded ambusher with a diamond bite.'],
+  ['tidepiper',  'Tidepiper',  '🦭', 'rare', 'Water',    'tap',      'Claps the waves and cracks the seafloor stones.'],
+  ['lumewisp',   'Lumewisp',   '🕯️', 'rare', 'Light',    'lucky',    'A wandering flame that points the way to riches.'],
+  ['duneroc',    'Duneroc',    '🦂', 'rare', 'Earth',    'power',    'Stings stone into submission out in the wastes.'],
+  ['prismray',   'Prismray',   '🌈', 'rare', 'Light',    'lucky',    'Bends light into loot nobody else can even see.'],
+  ['voltiger',   'Voltiger',   '🐯', 'rare', 'Electric', 'tap',      'Stripes crackle; every swat is a thunderclap.'],
+  ['grovemother','Grovemother','🌳', 'rare', 'Nature',   'balanced', 'The oldest sapling, root-deep in quiet fortune.'],
+
+  // ---- Epic ----
+  ['stormdrake',  'Stormdrake',  '🐲', 'epic', 'Electric', 'power', 'A storm given scales, teeth, and a temper.'],
+  ['frostwyrm',   'Frostwyrm',   '❄️', 'epic', 'Ice',      'power', 'Breathes blizzards that shatter boss gates.'],
+  ['voidraven',   'Voidraven',   '🌑', 'epic', 'Dark',     'lucky', 'Wings folded from the space between the stars.'],
+  ['titanox',     'Titanox',     '🦏', 'epic', 'Earth',    'power', 'A living mountain range with an attitude.'],
+  ['aurelion',    'Aurelion',    '🌞', 'epic', 'Light',    'power', 'A pocket sunrise that burns away the dark.'],
+  ['maelling',    'Maelling',    '🌊', 'epic', 'Water',    'power', 'A whirlpool with a will and a grudge against rock.'],
+  ['phoenixia',   'Phoenixia',   '🐦‍🔥', 'epic', 'Fire',     'tap',   'Reborn from every rock it reduces to ash.'],
+  ['verdantitan', 'Verdantitan', '🌴', 'epic', 'Nature',   'power', 'Its roots crack continents; its leaves shade your gold.'],
+  ['galewing',    'Galewing',    '🌪️', 'epic', 'Air',      'tap',   'A cyclone that learned to tap on command.'],
+  ['shadepard',   'Shadepard',   '🖤', 'epic', 'Dark',     'power', 'Stalks the dark and pounces clean through stone.'],
+
+  // ---- Legendary ----
+  ['astravalt',  'Astravalt',   '🌠', 'legendary', 'Cosmic', 'power',    'Rides a falling star straight through the bedrock.'],
+  ['luminark',   'Luminark',    '🌟', 'legendary', 'Light',  'lucky',    'A beacon that turns any midnight mine to high noon.'],
+  ['tempestria', 'Tempestria',  '⛈️', 'legendary', 'Electric','power',    'Keeps a private thunderstorm as an obedient pet.'],
+  ['gaialoth',   'Gaialoth',    '🏔️', 'legendary', 'Earth',  'power',    'Wears a mountain the way you might wear a hat.'],
+  ['abyssaria',  'Abyssaria',   '🌌', 'legendary', 'Dark',   'lucky',    'Fishes for fortune in the very deepest dark.'],
+  ['floralux',   'Floralux',    '🌸', 'legendary', 'Nature', 'lucky',    'Blooms once an age; its petals fall as gemstones.'],
+  ['pyrothos',   'Pyrothos',    '🌋', 'legendary', 'Fire',   'power',    'A volcano patiently taught to purr and to mine.'],
+  ['glacierna',  'Glacierna',   '🧊', 'legendary', 'Ice',    'balanced', 'An eternal winter, gentle as a lullaby.'],
+
+  // ---- Mythic ----
+  ['cosmara',    'Cosmara',      '🪐', 'mythic', 'Cosmic', 'lucky',    'Wears the rings of a whole planet as a crown.'],
+  ['eterna',     'Eterna',       '♾️', 'mythic', 'Cosmic', 'balanced', 'Has always been here. Will always be mining.'],
+  ['dracosol',   'Dracosol',     '☄️', 'mythic', 'Fire',   'power',    'A comet with wings; boss gates simply evaporate.'],
+  ['umbrix',     'Umbrix',       '🕳️', 'mythic', 'Dark',   'power',    'The hunger of the void, given a friendly little face.'],
+  ['lumina',     'Lumina Prime', '💫', 'mythic', 'Light',  'lucky',    'Pure daylight, folded small enough to carry.'],
+  ['gaiacore',   'Gaiacore',     '🌍', 'mythic', 'Earth',  'balanced', 'The steady heartbeat at the center of the world.'],
 ];
 
 // Build a lookup with derived per-copy base stats.

@@ -283,7 +283,12 @@ function leaderboard() {
   }
   rows.push({ name: 'You', trophies: you, you: true });
   rows.sort((a, b) => b.trophies - a.trophies);
-  return rows.slice(0, 10);
+  rows.forEach((row, i) => { row.rank = i + 1; });
+  const top = rows.slice(0, 10);
+  // Always keep the player visible: if they're outside the top 10, show them
+  // in the final slot at their true rank instead of a rival.
+  if (!top.some(row => row.you)) top[top.length - 1] = rows.find(row => row.you);
+  return top;
 }
 
 // ---- Achievements ----
