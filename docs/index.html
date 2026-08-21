@@ -213,40 +213,88 @@
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
   /* ---- farm ---- */
-  .farm-head { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 10px; }
-  .farm-head h2 { margin: 0; font-size: 1.15rem; }
-  .farm-hint { color: var(--ink-soft); font-size: .78rem; margin: 2px 0 12px; text-align: center; }
-  .plots { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 8px; margin-bottom: 18px; }
+  /* ---- farm: garden scene ---- */
+  .farm-scene {
+    position: relative; border-radius: 16px; padding: 0; margin: 10px 0; overflow: hidden;
+    border: 1px solid rgba(0,0,0,0.5);
+    background:
+      radial-gradient(130% 90% at 50% 125%, rgba(150,205,90,.4), transparent 62%),
+      linear-gradient(180deg, #12331d 0%, #1b4826 20%, #2f6a31 46%, #56963c 78%, #74b247 100%);
+    box-shadow: inset 0 22px 44px rgba(0,0,0,.4), inset 0 -10px 30px rgba(0,0,0,.2);
+  }
+  .garden-sign {
+    position: absolute; top: 10px; left: 10px; z-index: 2; font-weight: 800; letter-spacing: .14em;
+    color: #f2e2b8; font-size: .78rem; padding: 6px 12px; border-radius: 8px;
+    background: linear-gradient(180deg,#6b4a2a,#48300f); border: 2px solid #291a0a;
+    box-shadow: 0 3px 0 rgba(0,0,0,.4), inset 0 1px 0 rgba(255,255,255,.15); text-shadow: 0 1px 0 rgba(0,0,0,.5);
+  }
+  .farm-plots-scroll { position: relative; z-index: 1; max-height: 60vh; overflow-y: auto; padding: 44px 12px 16px; -webkit-overflow-scrolling: touch; }
+  .plots { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 0; }
+  .plots.diamond { gap: 20px; padding: 14px 6px; }
   .plot {
-    aspect-ratio: 1 / 1; border-radius: 14px; border: 1px solid var(--panel-brd);
-    background: rgba(70,48,26,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center;
-    cursor: pointer; position: relative; overflow: hidden; text-align: center; padding: 4px;
-    color: var(--ink); font-family: var(--font);
+    aspect-ratio: 5 / 4; border-radius: 10px; border: 3px solid #4a3016; padding: 0; cursor: pointer;
+    position: relative; overflow: hidden; color: var(--ink); font-family: var(--font);
+    background: radial-gradient(78% 70% at 50% 38%, #3c2614, #241509);
+    box-shadow: inset 0 0 14px rgba(0,0,0,.65), 0 3px 0 rgba(0,0,0,.35);
   }
-  .plot.empty { background: repeating-linear-gradient(45deg, rgba(96,64,32,0.32), rgba(96,64,32,0.32) 6px, rgba(74,48,24,0.32) 6px, rgba(74,48,24,0.32) 12px); }
-  .plot.ready { border-color: var(--mint); box-shadow: 0 0 12px rgba(78,224,160,0.4); }
+  .plots.diamond .plot { transform: rotate(45deg); aspect-ratio: 1 / 1; }
+  .plots.diamond .plot .pinner { transform: rotate(-45deg); }
+  .plot .pinner { display: flex; flex-direction: column; align-items: center; justify-content: center; width: 100%; height: 100%; text-align: center; }
+  .plot.ready { border-color: var(--mint); box-shadow: inset 0 0 14px rgba(0,0,0,.5), 0 0 14px rgba(78,224,160,0.45); }
   .plot .pe { font-size: 30px; line-height: 1; }
-  .plot .plabel { font-size: .58rem; color: var(--ink-soft); margin-top: 2px; }
+  .plot .plabel { font-size: .58rem; color: #d8c39a; margin-top: 3px; text-shadow: 0 1px 2px rgba(0,0,0,.6); }
   .plot.ready .plabel { color: var(--mint); font-weight: 800; }
-  .plot .pbar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--mint); }
-  .plot .ptick { position: absolute; top: 3px; right: 5px; color: var(--mint); font-weight: 800; font-size: .8rem; }
-  .plot .empty-plus { font-size: 26px; color: var(--ink-soft); opacity: .55; }
-  .crop-head { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 8px; }
-  .crop-head h3 { margin: 0; font-size: 1rem; }
-  .crop-sub { font-size: .76rem; color: var(--ink-soft); }
-  .crop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; margin-bottom: 16px; }
-  .crop {
-    display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 12px; text-align: left;
-    background: rgba(124,92,255,0.08); border: 1px solid var(--panel-brd); cursor: pointer; color: var(--ink); font-family: var(--font);
+  .plot .pbar { position: absolute; left: 10%; right: 10%; bottom: 7px; height: 8px; background: rgba(0,0,0,.55); border-radius: 4px; overflow: hidden; }
+  .plot .pbar > span { display: block; height: 100%; background: linear-gradient(90deg,#8ee06a,#4fbf50); }
+  .plot .ptick { position: absolute; top: 4px; right: 6px; color: var(--mint); font-weight: 800; font-size: .8rem; }
+  .plot .empty-plus { font-size: 24px; color: #c9b78e; opacity: .6; }
+
+  /* ---- farm: toolbar ---- */
+  .farm-toolbar { position: sticky; bottom: 8px; display: flex; gap: 8px; align-items: center; margin-top: 10px; background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 14px; padding: 8px; }
+  .ftool { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 8px 12px; border-radius: 11px; background: rgba(255,255,255,.05); border: 1px solid var(--panel-brd); color: var(--ink); font-family: var(--font); font-weight: 700; cursor: pointer; font-size: .68rem; }
+  .ftool .fi { font-size: 1.15rem; line-height: 1; }
+  .fsel { flex: 1; display: flex; align-items: center; gap: 8px; padding: 6px 10px; border-radius: 11px; background: rgba(0,0,0,.28); min-width: 0; }
+  .fsel-ico { font-size: 1.5rem; flex: none; }
+  .fsel-txt { display: flex; flex-direction: column; min-width: 0; }
+  .fsel-txt b { font-size: .88rem; }
+  .fsel-txt span { font-size: .66rem; color: var(--ink-soft); }
+  #autoOpen.running { box-shadow: 0 0 0 2px var(--mint), 0 0 12px rgba(78,224,160,.5); }
+
+  /* ---- bottom sheets ---- */
+  .sheet { position: fixed; inset: 0; z-index: 55; background: rgba(0,0,0,.62); display: none; align-items: flex-end; justify-content: center; }
+  .sheet.show { display: flex; }
+  .sheet-card {
+    width: 100%; max-width: 620px; max-height: 86vh; overflow-y: auto; touch-action: none;
+    background: linear-gradient(180deg,#241a12,#160f08); border: 2px solid #4a3016; border-bottom: none;
+    border-radius: 22px 22px 0 0; padding: 10px 16px 26px; box-shadow: 0 -8px 30px rgba(0,0,0,.55); animation: sheetUp .22s ease;
   }
-  .crop.sel { border-color: var(--violet-2); background: rgba(124,92,255,0.2); box-shadow: 0 0 0 1px var(--violet-2) inset; }
-  .crop .ce { font-size: 26px; line-height: 1; flex: none; }
-  .crop .cinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-  .crop .cn { font-weight: 800; font-size: .86rem; }
-  .crop .cmeta { font-size: .66rem; color: var(--ink-soft); }
-  .crop .creward { font-size: .72rem; font-weight: 800; }
-  .crop .creward.treats { color: var(--treat); }
-  .crop .creward.orbs { color: var(--violet-2); }
+  @keyframes sheetUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .grabber { width: 46px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.28); margin: 2px auto 14px; }
+  .sheet-title { text-align: center; font-weight: 800; letter-spacing: .06em; font-size: 1.2rem; margin-bottom: 16px; color: #f0e6d0; }
+  .sheet-title span { color: #ffce54; }
+  .build-row, .seed-row {
+    width: 100%; display: flex; align-items: center; gap: 12px; padding: 13px 15px; border-radius: 14px;
+    background: rgba(255,255,255,.03); border: 1px solid var(--panel-brd); color: var(--ink); font-family: var(--font); cursor: pointer; text-align: left;
+  }
+  .build-ico { font-size: 1.6rem; }
+  .build-info { flex: 1; display: flex; flex-direction: column; }
+  .build-name { font-weight: 800; font-size: 1rem; }
+  .build-sub { font-size: .76rem; color: var(--ink-soft); }
+  .build-right, .seed-right { display: flex; flex-direction: column; align-items: flex-end; gap: 2px; }
+  .build-cost, .seed-cost { font-weight: 800; color: #ffce54; }
+  .build-row.cant .build-cost, .seed-row .seed-left.out { color: #ff6d6d; }
+  .build-owned { font-size: .72rem; color: var(--ink-soft); }
+  .seg { display: flex; gap: 8px; margin-bottom: 14px; }
+  .seg-btn { flex: 1; padding: 12px; border-radius: 12px; background: rgba(255,255,255,.03); border: 1px solid var(--panel-brd); color: var(--ink-soft); font-family: var(--font); font-weight: 800; font-size: 1rem; cursor: pointer; }
+  .seg-btn.active { background: linear-gradient(180deg,#5a3f22,#3c2915); color: #f0e6d0; border-color: #6b4a2a; }
+  .seed-list { display: flex; flex-direction: column; gap: 10px; }
+  .seed-row.sel { border-color: var(--violet-2); box-shadow: 0 0 0 1px var(--violet-2) inset; background: rgba(124,92,255,.12); }
+  .seed-ico { font-size: 1.7rem; flex: none; }
+  .seed-mid { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .seed-name { font-weight: 800; font-size: 1rem; }
+  .seed-sub { font-size: .78rem; color: var(--ink-soft); }
+  .seed-left { font-size: .76rem; color: var(--ink-soft); }
+  .seed-foot { text-align: center; color: var(--ink-soft); font-size: .78rem; margin-top: 16px; }
 
   /* ---- arena (leaderboard) ---- */
   .arena-hdr { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin: 8px 0 12px; }
@@ -518,20 +566,18 @@
     </div><!-- /tabDungeon -->
 
     <div id="tabFarm" class="tab-page" hidden>
-      <div class="farm-head">
-        <h2>🌱 Garden</h2>
-        <span class="cap" id="farmPlotsInfo">Plots 1/32</span>
+      <div class="farm-scene">
+        <div class="garden-sign">GARDEN</div>
+        <div class="farm-plots-scroll">
+          <div class="plots" id="plots"></div>
+        </div>
       </div>
-      <div class="actions">
-        <button class="btn primary" id="farmMain">🌱 Plant</button>
-        <button class="btn" id="buyPlot">➕ Buy Plot <span class="cost" id="plotCostLbl"></span></button>
+      <div class="farm-toolbar">
+        <button class="ftool" id="buildBtn"><span class="fi">🛠️</span><span class="fl">Build</span></button>
+        <button class="ftool" id="seedsBtn"><span class="fi">🌱</span><span class="fl">Seeds</span></button>
+        <button class="ftool" id="layoutBtn" title="Toggle plot layout"><span class="fi" id="layoutIco">◇</span><span class="fl">Layout</span></button>
+        <div class="fsel" id="farmSel"></div>
       </div>
-      <div class="farm-hint" id="farmHint"></div>
-      <div class="plots" id="plots"></div>
-      <div class="crop-head"><h3>🥬 Veggies</h3><span class="crop-sub">grow → 🍬 treats</span></div>
-      <div class="crop-list" id="cropVeg"></div>
-      <div class="crop-head"><h3>🌱 Orb Seeds</h3><span class="crop-sub">grow → 🔮 orbs</span></div>
-      <div class="crop-list" id="cropOrb"></div>
     </div>
 
     <div id="tabArena" class="tab-page" hidden>
@@ -608,12 +654,42 @@
         <button class="btn small" data-add="treats" data-amt="10000">+10k</button>
         <button class="btn small" data-add="treats" data-amt="100000">+100k</button>
       </div>
+      <label class="set-row"><input type="checkbox" id="devFlags" /> <span>🎫 Infinite arena flags</span></label>
+      <div class="dev-group">
+        <span class="dev-label">⏭️ Time</span>
+        <button class="btn small" id="devNextDay">Next Day (+24h)</button>
+      </div>
     </div>
 
     <div class="set-actions">
       <button class="btn danger" id="wipeSave">🗑️ Wipe Save</button>
       <button class="btn" id="setClose">Close</button>
     </div>
+  </div>
+</div>
+
+<div class="sheet" id="buildSheet">
+  <div class="sheet-card" id="buildCard">
+    <div class="grabber"></div>
+    <div class="sheet-title">BUILD</div>
+    <button class="build-row" id="buyPlotRow">
+      <span class="build-ico">🟫</span>
+      <span class="build-info"><span class="build-name">+1 Plot</span><span class="build-sub">Grow more crops at once</span></span>
+      <span class="build-right"><span class="build-cost" id="plotCostLbl">🪙 …</span><span class="build-owned" id="plotOwned">1/32 owned</span></span>
+    </button>
+  </div>
+</div>
+
+<div class="sheet" id="seedSheet">
+  <div class="sheet-card" id="seedCard">
+    <div class="grabber"></div>
+    <div class="sheet-title">Restocks in <span id="restockTimer">--:--:--</span></div>
+    <div class="seg" id="seedSeg">
+      <button class="seg-btn active" data-seed="veg">Food</button>
+      <button class="seg-btn" data-seed="orb">Orbs</button>
+    </div>
+    <div class="seed-list" id="seedList"></div>
+    <div class="seed-foot" id="seedFoot"></div>
   </div>
 </div>
 
@@ -810,7 +886,7 @@
     return {
       gold: 0, treats: 0, orbs: 5, orbsBought: 0,
       holdCap: 3, roster: [], pending: null, nid: 1,
-      autoKeep: sanitizeAutoKeep(null), devMode: false, tab: "dungeon",
+      autoKeep: sanitizeAutoKeep(null), autoBg: false, devMode: false, devFlags: false, tab: "dungeon",
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0,
@@ -839,7 +915,7 @@
   function freshFarm() {
     var stock = {};
     FARM_CROPS.forEach(function (c) { if (c.max > 0) stock[c.id] = c.max; });
-    return { plotsOwned: 1, plots: [null], selected: "lettuce", stock: stock, vegRenewAt: Date.now(), orbRenewAt: Date.now() };
+    return { plotsOwned: 1, plots: [null], selected: "lettuce", layout: "square", stock: stock, vegRenewAt: Date.now(), orbRenewAt: Date.now() };
   }
 
   function sanitizeFarm(f) {
@@ -847,6 +923,7 @@
     if (!f || typeof f !== "object") return base;
     base.plotsOwned = Math.min(MAX_PLOTS, Math.max(1, f.plotsOwned | 0));
     base.selected = cropById(f.selected) ? f.selected : "lettuce";
+    base.layout = (f.layout === "diamond") ? "diamond" : "square";
     var arr = Array.isArray(f.plots) ? f.plots : [];
     base.plots = [];
     for (var i = 0; i < base.plotsOwned; i++) {
@@ -882,7 +959,9 @@
           state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
           state.pending = (p.pending && sanitizeOrbie(p.pending)) ? p.pending : null;
           state.autoKeep = sanitizeAutoKeep(p.autoKeep);
+          state.autoBg = !!p.autoBg;
           state.devMode = !!p.devMode;
+          state.devFlags = !!p.devFlags;
           state.tab = (p.tab === "farm" || p.tab === "arena") ? p.tab : "dungeon";
           state.farm = sanitizeFarm(p.farm);
           state.arena = sanitizeArena(p.arena);
@@ -968,14 +1047,25 @@
     tabbar: document.getElementById("tabbar"),
     tabDungeon: document.getElementById("tabDungeon"),
     tabFarm: document.getElementById("tabFarm"),
-    farmMain: document.getElementById("farmMain"),
-    buyPlot: document.getElementById("buyPlot"),
-    plotCostLbl: document.getElementById("plotCostLbl"),
-    farmHint: document.getElementById("farmHint"),
-    farmPlotsInfo: document.getElementById("farmPlotsInfo"),
     plots: document.getElementById("plots"),
-    cropVeg: document.getElementById("cropVeg"),
-    cropOrb: document.getElementById("cropOrb"),
+    buildBtn: document.getElementById("buildBtn"),
+    seedsBtn: document.getElementById("seedsBtn"),
+    layoutBtn: document.getElementById("layoutBtn"),
+    layoutIco: document.getElementById("layoutIco"),
+    farmSel: document.getElementById("farmSel"),
+    buildSheet: document.getElementById("buildSheet"),
+    buildCard: document.getElementById("buildCard"),
+    buyPlotRow: document.getElementById("buyPlotRow"),
+    plotCostLbl: document.getElementById("plotCostLbl"),
+    plotOwned: document.getElementById("plotOwned"),
+    seedSheet: document.getElementById("seedSheet"),
+    seedCard: document.getElementById("seedCard"),
+    seedSeg: document.getElementById("seedSeg"),
+    seedList: document.getElementById("seedList"),
+    seedFoot: document.getElementById("seedFoot"),
+    restockTimer: document.getElementById("restockTimer"),
+    devFlags: document.getElementById("devFlags"),
+    devNextDay: document.getElementById("devNextDay"),
     tabArena: document.getElementById("tabArena"),
     arenaRankLbl: document.getElementById("arenaRankLbl"),
     arenaFlags: document.getElementById("arenaFlags"),
@@ -1327,8 +1417,8 @@
 
     // farm: refresh seed renewal (~every 2s) and live plot timers (~every 0.5s)
     _farmT++;
-    if (_farmT % 33 === 0) { if (checkSeedRenewal() && state.tab === "farm") renderCropLists(); }
-    if (state.tab === "farm" && _farmT % 8 === 0) { renderPlots(); renderFarmButtons(); }
+    if (_farmT % 33 === 0) { if (checkSeedRenewal() && state.tab === "farm") renderFarm(); }
+    if (state.tab === "farm" && _farmT % 8 === 0) { renderPlots(); if (el.seedSheet.classList.contains("show")) renderSeedSheet(); if (el.buildSheet.classList.contains("show")) renderBuildSheet(); }
     // arena: refresh flag regen + timer (~every 1s) while viewing
     if (state.tab === "arena" && _farmT % 16 === 0) renderArena();
 
@@ -1636,8 +1726,8 @@
   }
 
   function autoOpenStep() {
-    if (!autoOpening || autoWaiting) return; // paused while the player decides
-    if (state.orbs <= 0) { stopAutoOpen(); return; }
+    if (!autoOpening || autoWaiting || state.pending) return; // paused while the player decides
+    if (state.orbs <= 0) return;   // idle in the background until more orbs arrive (e.g. from the farm)
     state.orbs -= 1;
     var ob = makeOrbie();
     var r = rarityOf(ob);
@@ -1665,41 +1755,54 @@
     if (kind === "sold") autoStats.sold++; else autoStats.replaced++;
     autoWaiting = false;
     updateAutoStatus();
-    if (!(autoOpening && state.orbs > 0)) stopAutoOpen(); // nothing left -> finish
-    // otherwise the running interval picks up the next orb
+    // the background runner keeps going and picks up the next orb whenever available
   }
 
+  function setAutoRunLabel() {
+    if (autoOpening) { el.amRun.textContent = "⏹ Stop"; el.amRun.classList.remove("primary"); el.amRun.classList.add("danger"); }
+    else { el.amRun.textContent = "▶ Auto-Open"; el.amRun.classList.remove("danger"); el.amRun.classList.add("primary"); }
+    if (el.autoOpen && el.autoOpen.classList) el.autoOpen.classList.toggle("running", autoOpening);
+  }
+
+  // Auto-Open runs in the BACKGROUND: once started it keeps opening orbs across
+  // tabs (and while the menu is closed), idling when you're out of orbs and
+  // resuming automatically as new orbs arrive from the farm.
   function startAutoOpen() {
-    if (autoOpening) return;
     if (state.pending) { toast("Resolve the current hatch first."); return; }
-    if (state.orbs <= 0) { toast("No orbs to auto-open."); return; }
-    autoOpening = true;
+    autoOpening = true; state.autoBg = true;
     autoStats = { kept: 0, sold: 0, replaced: 0 };
-    el.amRun.textContent = "⏹ Stop";
-    el.amRun.classList.remove("primary"); el.amRun.classList.add("danger");
-    updateAutoStatus();
-    autoOpenTimer = setInterval(autoOpenStep, 200);
+    if (!autoOpenTimer) autoOpenTimer = setInterval(autoOpenStep, 200);
+    setAutoRunLabel(); updateAutoStatus(); saveSoon();
+    toast("🔁 Auto-Open running in the background.");
+  }
+
+  // Restore the background runner on boot if it was left on.
+  function resumeAutoOpen() {
+    if (!state.autoBg) return;
+    autoOpening = true;
+    if (!autoOpenTimer) autoOpenTimer = setInterval(autoOpenStep, 200);
+    setAutoRunLabel();
   }
 
   function stopAutoOpen() {
     if (autoOpenTimer) { clearInterval(autoOpenTimer); autoOpenTimer = null; }
     var was = autoOpening;
-    autoOpening = false; autoWaiting = false;
-    el.amRun.textContent = "▶ Auto-Open";
-    el.amRun.classList.remove("danger"); el.amRun.classList.add("primary");
+    autoOpening = false; autoWaiting = false; state.autoBg = false;
+    setAutoRunLabel();
     if (was) updateAutoStatus(true);
+    saveSoon();
   }
 
   function openAutoMenu() {
     if (state.pending) { toast("Resolve the current hatch first."); return; }
     buildAmList();
-    autoStats = { kept: 0, sold: 0, replaced: 0 };
+    setAutoRunLabel();
     updateAutoStatus();
     el.autoMenu.classList.add("show");
   }
 
   function closeAutoMenu() {
-    stopAutoOpen();
+    // Leave the runner going in the background; just hide the menu.
     el.autoMenu.classList.remove("show");
   }
 
@@ -1745,8 +1848,15 @@
   /* ---- Settings + Dev mode ---- */
   function openSettings() {
     el.devToggle.checked = !!state.devMode;
+    el.devFlags.checked = !!state.devFlags;
     el.devPanel.style.display = state.devMode ? "" : "none";
     el.settingsMenu.classList.add("show");
+  }
+  function toggleDevFlags() {
+    state.devFlags = el.devFlags.checked;
+    if (state.tab === "arena") renderArena();
+    saveSoon();
+    toast(state.devFlags ? "🎫 Infinite arena flags ON" : "🎫 Infinite arena flags OFF");
   }
   function closeSettings() { el.settingsMenu.classList.remove("show"); }
   function toggleDev() {
@@ -1802,55 +1912,83 @@
     return changed;
   }
 
+  function restockHms(ms) {
+    var s = Math.max(0, Math.ceil(ms / 1000)), h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), sec = s % 60;
+    function p(n) { return (n < 10 ? "0" : "") + n; }
+    return p(h) + ":" + p(m) + ":" + p(sec);
+  }
+
   function renderPlots() {
     var f = state.farm, now = Date.now(), html = "";
+    el.plots.className = "plots " + (f.layout === "diamond" ? "diamond" : "square");
     for (var i = 0; i < f.plots.length; i++) {
       var p = f.plots[i];
-      if (!p) { html += '<button class="plot empty" data-i="' + i + '"><span class="empty-plus">＋</span><span class="plabel">plant</span></button>'; continue; }
+      if (!p) { html += '<button class="plot empty" data-i="' + i + '"><span class="pinner"><span class="empty-plus">＋</span><span class="plabel">plant</span></span></button>'; continue; }
       var c = cropById(p.crop), elapsed = now - p.at, total = c.grow * 1000;
       if (elapsed >= total) {
-        html += '<button class="plot ready" data-i="' + i + '"><span class="ptick">✓</span><span class="pe">' + c.e + '</span><span class="plabel">Harvest</span></button>';
+        html += '<button class="plot ready" data-i="' + i + '"><span class="pinner"><span class="ptick">✓</span><span class="pe">' + c.e + '</span><span class="plabel">Harvest</span></span></button>';
       } else {
         var pct = Math.max(0, Math.min(100, elapsed / total * 100));
-        html += '<button class="plot" data-i="' + i + '"><span class="pe" style="opacity:.8">' + c.e + '</span><span class="plabel">' + farmCountdown(total - elapsed) + '</span><span class="pbar" style="width:' + pct.toFixed(1) + '%"></span></button>';
+        html += '<button class="plot" data-i="' + i + '"><span class="pinner"><span class="pe" style="opacity:.85">' + c.e + '</span><span class="plabel">' + farmCountdown(total - elapsed) + '</span><span class="pbar"><span style="width:' + pct.toFixed(1) + '%"></span></span></span></button>';
       }
     }
     el.plots.innerHTML = html;
   }
 
-  function cropCardHtml(c) {
+  function renderFarmToolbar() {
+    var c = cropById(state.farm.selected);
+    el.farmSel.innerHTML = '<span class="fsel-ico">' + c.e + '</span><span class="fsel-txt"><b>' + c.n + '</b><span>tap a plot to plant</span></span>';
+    el.layoutIco.textContent = state.farm.layout === "diamond" ? "◇" : "▢";
+  }
+
+  function renderBuildSheet() {
     var f = state.farm;
-    var sel = f.selected === c.id ? " sel" : "";
-    var seed = c.max > 0 ? ("🌰 " + (f.stock[c.id] || 0) + "/" + c.max) : "🌰 ∞";
-    var rew = c.kind === "treats" ? ("+" + fmt(c.reward) + " 🍬") : ("+" + fmt(c.reward) + " 🔮");
-    return '<button class="crop' + sel + '" data-crop="' + c.id + '">' +
-      '<span class="ce">' + c.e + '</span>' +
-      '<span class="cinfo">' +
-        '<span class="cn">' + c.n + '</span>' +
-        '<span class="cmeta">🪙' + fmt(c.cost) + ' · ' + farmDur(c.grow) + ' · ' + seed + '</span>' +
-        '<span class="creward ' + c.kind + '">' + rew + '</span>' +
-      '</span></button>';
+    el.plotOwned.textContent = f.plotsOwned + "/" + MAX_PLOTS + " owned";
+    if (f.plotsOwned >= MAX_PLOTS) { el.plotCostLbl.textContent = "MAX"; el.buyPlotRow.disabled = true; }
+    else { var pc = plotCost(); el.plotCostLbl.textContent = "🪙 " + fmt(pc); el.buyPlotRow.disabled = false; if (el.buyPlotRow.classList) el.buyPlotRow.classList.toggle("cant", state.gold < pc); }
   }
 
-  function renderCropLists() {
-    el.cropVeg.innerHTML = FARM_CROPS.filter(function (c) { return c.cat === "veg"; }).map(cropCardHtml).join("");
-    el.cropOrb.innerHTML = FARM_CROPS.filter(function (c) { return c.cat === "orb"; }).map(cropCardHtml).join("");
+  function cropRowHtml(c) {
+    var f = state.farm, sel = f.selected === c.id ? " sel" : "";
+    var out = c.max > 0 && (f.stock[c.id] || 0) <= 0;
+    var left = c.max > 0 ? ((f.stock[c.id] || 0) + "/" + c.max + " left") : "∞";
+    var rewIco = c.kind === "treats" ? "🍬" : "🔮";
+    return '<button class="seed-row' + sel + '" data-crop="' + c.id + '">' +
+      '<span class="seed-ico">' + c.e + '</span>' +
+      '<span class="seed-mid"><span class="seed-name">' + c.n + '</span>' +
+        '<span class="seed-sub">' + farmDur(c.grow) + ' ⇒ ' + rewIco + ' ' + fmt(c.reward) + '</span></span>' +
+      '<span class="seed-right"><span class="seed-cost">🪙 ' + fmt(c.cost) + '</span>' +
+        '<span class="seed-left' + (out ? ' out' : '') + '">' + left + '</span></span>' +
+      '</button>';
   }
 
-  function renderFarmButtons() {
-    var f = state.farm, now = Date.now(), ready = 0;
-    for (var i = 0; i < f.plots.length; i++) { if (f.plots[i] && (now - f.plots[i].at) >= cropById(f.plots[i].crop).grow * 1000) ready++; }
-    el.farmPlotsInfo.textContent = "Plots " + f.plotsOwned + "/" + MAX_PLOTS;
-    el.farmMain.textContent = ready > 0 ? ("🧺 Harvest (" + ready + ")") : "🌱 Plant";
-    if (f.plotsOwned >= MAX_PLOTS) { el.plotCostLbl.textContent = "MAX"; el.buyPlot.disabled = true; }
-    else { var pc = plotCost(); el.plotCostLbl.textContent = "🪙" + fmt(pc); el.buyPlot.disabled = state.gold < pc; }
-    var c = cropById(f.selected);
-    el.farmHint.innerHTML = "Planting <b>" + c.e + " " + c.n + "</b> · tap a plot to plant/harvest · long-press <b>Plant</b> for all plots";
+  var seedTab = "veg";
+  function renderSeedSheet() {
+    var cat = seedTab, f = state.farm;
+    var segs = el.seedSeg.children;
+    for (var i = 0; i < segs.length; i++) { var t = segs[i].getAttribute("data-seed"); if (segs[i].classList) segs[i].classList.toggle("active", t === cat); }
+    var ms = cat === "veg" ? (f.vegRenewAt + VEG_RENEW_MS - Date.now()) : (f.orbRenewAt + ORB_RENEW_MS - Date.now());
+    el.restockTimer.textContent = restockHms(ms);
+    el.seedList.innerHTML = FARM_CROPS.filter(function (c) { return c.cat === cat; }).map(cropRowHtml).join("");
+    el.seedFoot.innerHTML = cat === "veg" ? "🥬 Food seeds grow into 🍬 treats" : "🌱 Orb seeds grow into 🔮 orbs";
   }
 
-  function renderFarm() { renderPlots(); renderCropLists(); renderFarmButtons(); }
+  function renderFarm() {
+    renderPlots(); renderFarmToolbar();
+    if (el.buildSheet.classList.contains("show")) renderBuildSheet();
+    if (el.seedSheet.classList.contains("show")) renderSeedSheet();
+  }
 
-  function selectCrop(id) { if (!cropById(id)) return; state.farm.selected = id; renderFarm(); saveSoon(); }
+  function selectCrop(id) { if (!cropById(id)) return; state.farm.selected = id; closeSeedSheet(); renderFarm(); saveSoon(); }
+
+  function toggleLayout() { state.farm.layout = state.farm.layout === "diamond" ? "square" : "diamond"; renderFarm(); saveSoon(); }
+
+  /* ---- Farm bottom-sheets (swipe down to dismiss) ---- */
+  function openBuildSheet() { renderBuildSheet(); el.buildSheet.classList.add("show"); }
+  function closeBuildSheet() { el.buildSheet.classList.remove("show"); }
+  function openSeedSheet() { renderSeedSheet(); el.seedSheet.classList.add("show"); }
+  function closeSeedSheet() { el.seedSheet.classList.remove("show"); }
+  function setSeedTab(t) { seedTab = (t === "orb") ? "orb" : "veg"; renderSeedSheet(); }
 
   function plantInto(i) {
     var f = state.farm; if (f.plots[i]) return false;
@@ -1875,14 +2013,8 @@
     else if (!state.farm.plots[i]) { if (plantInto(i)) { renderAll(); saveSoon(); } }
   }
 
-  function farmMainTap() {
-    var f = state.farm, k;
-    for (k = 0; k < f.plots.length; k++) { if (plotReadyIdx(k)) { harvestPlot(k); renderAll(); saveSoon(); return; } }
-    for (k = 0; k < f.plots.length; k++) { if (!f.plots[k]) { if (plantInto(k)) { renderAll(); saveSoon(); } return; } }
-    toast("No empty plots — buy a plot or wait to harvest.");
-  }
-
-  function farmMainLong() {
+  // Long-press the garden: harvest every ready plot, then plant every empty one.
+  function farmAll() {
     var f = state.farm, harv = 0, planted = 0, k;
     for (k = 0; k < f.plots.length; k++) { if (harvestPlot(k)) harv++; }
     for (k = 0; k < f.plots.length; k++) { if (f.plots[k]) continue; if (plantInto(k)) planted++; else break; }
@@ -1896,8 +2028,19 @@
     var pc = plotCost();
     if (state.gold < pc) { toast("Not enough gold for a plot (🪙" + fmt(pc) + ")."); return; }
     state.gold -= pc; f.plotsOwned++; f.plots.push(null);
-    renderAll(); saveSoon();
+    renderAll(); renderBuildSheet(); saveSoon();
     toast("New plot! (" + f.plotsOwned + "/" + MAX_PLOTS + ")");
+  }
+
+  // Dev: jump 24h forward by aging every timestamp back a day.
+  function advanceDay() {
+    var DAY = 24 * 3600 * 1000, f = state.farm, i;
+    for (i = 0; i < f.plots.length; i++) { if (f.plots[i]) f.plots[i].at -= DAY; }
+    f.vegRenewAt -= DAY; f.orbRenewAt -= DAY;
+    state.arena.flagAt -= DAY;
+    checkSeedRenewal(); regenFlags();
+    renderAll(); saveSoon();
+    toast("⏭️ Advanced 24 hours.");
   }
 
   /* ============================================================
@@ -1910,6 +2053,7 @@
 
   function regenFlags() {
     var a = state.arena, now = Date.now();
+    if (state.devFlags) { a.flags = ARENA_MAX_FLAGS; a.flagAt = now; return; }
     if (a.flags >= ARENA_MAX_FLAGS) { a.flagAt = now; return; }
     var gained = Math.floor((now - a.flagAt) / ARENA_FLAG_MS);
     if (gained > 0) {
@@ -2138,6 +2282,7 @@
       if (btns[i].classList) btns[i].classList.toggle("active", t === name);
     }
     if (name === "farm") { checkSeedRenewal(); renderFarm(); }
+    else { closeBuildSheet(); closeSeedSheet(); }   // don't leave farm sheets over other tabs
     if (name === "arena") { renderArena(); }
     saveSoon();
   }
@@ -2164,6 +2309,8 @@
   el.setClose.addEventListener("click", closeSettings);
   el.settingsMenu.addEventListener("click", function (e) { if (e.target === el.settingsMenu) closeSettings(); });
   el.devToggle.addEventListener("change", toggleDev);
+  el.devFlags.addEventListener("change", toggleDevFlags);
+  el.devNextDay.addEventListener("click", advanceDay);
   el.wipeSave.addEventListener("click", function () { doReset(); closeSettings(); });
   el.devPanel.addEventListener("click", function (e) {
     var b = e.target;
@@ -2184,34 +2331,68 @@
     var t = closestAttr(e.target, "data-tab", el.tabbar);
     if (t) setTab(t);
   });
-  el.buyPlot.addEventListener("click", doBuyPlot);
-  el.plots.addEventListener("click", function (e) {
-    var i = closestAttr(e.target, "data-i", el.plots);
-    if (i !== null) tapPlot(parseInt(i, 10));
-  });
-  function _cropPick(e, container) {
-    var id = closestAttr(e.target, "data-crop", container);
-    if (id) selectCrop(id);
-  }
-  el.cropVeg.addEventListener("click", function (e) { _cropPick(e, el.cropVeg); });
-  el.cropOrb.addEventListener("click", function (e) { _cropPick(e, el.cropOrb); });
   el.challengeBtn.addEventListener("click", startChallenge);
   el.fightSpeed.addEventListener("click", toggleFightSpeed);
 
-  // Plant/Harvest button: tap = one, long-press = all plots
-  var _fpTimer = null, _fpFired = false;
+  // Farm toolbar: Build / Seeds sheets + layout toggle
+  el.buildBtn.addEventListener("click", openBuildSheet);
+  el.seedsBtn.addEventListener("click", openSeedSheet);
+  el.layoutBtn.addEventListener("click", toggleLayout);
+  el.buyPlotRow.addEventListener("click", doBuyPlot);
+  el.seedSeg.addEventListener("click", function (e) {
+    var t = closestAttr(e.target, "data-seed", el.seedSeg);
+    if (t) setSeedTab(t);
+  });
+  el.seedList.addEventListener("click", function (e) {
+    var id = closestAttr(e.target, "data-crop", el.seedList);
+    if (id) selectCrop(id);
+  });
+
+  // Bottom sheets: tap backdrop or swipe the card down to dismiss.
+  function wireSheet(sheet, card, onClose) {
+    sheet.addEventListener("click", function (e) { if (e.target === sheet) onClose(); });
+    var startY = null, dy = 0;
+    card.addEventListener("pointerdown", function (e) { startY = (e.clientY != null ? e.clientY : 0); dy = 0; card.style.transition = "none"; });
+    card.addEventListener("pointermove", function (e) {
+      if (startY === null) return;
+      dy = (e.clientY != null ? e.clientY : 0) - startY;
+      if (dy > 0) card.style.transform = "translateY(" + dy + "px)";
+    });
+    function end() {
+      if (startY === null) return;
+      card.style.transition = ""; card.style.transform = "";
+      if (dy > 90) onClose();
+      startY = null; dy = 0;
+    }
+    card.addEventListener("pointerup", end);
+    card.addEventListener("pointercancel", end);
+    card.addEventListener("pointerleave", function () { if (startY !== null) end(); });
+  }
+  wireSheet(el.buildSheet, el.buildCard, closeBuildSheet);
+  wireSheet(el.seedSheet, el.seedCard, closeSeedSheet);
+
+  // Plots: tap = plant/harvest one, long-press = all plots
+  var _fpTimer = null, _fpFired = false, _fpIdx = null;
   function _fpCancel() { if (_fpTimer) { clearTimeout(_fpTimer); _fpTimer = null; } }
-  el.farmMain.addEventListener("pointerdown", function () { _fpFired = false; _fpTimer = setTimeout(function () { _fpFired = true; farmMainLong(); }, 550); });
-  el.farmMain.addEventListener("pointerup", _fpCancel);
-  el.farmMain.addEventListener("pointerleave", _fpCancel);
-  el.farmMain.addEventListener("pointercancel", _fpCancel);
-  el.farmMain.addEventListener("click", function () { if (_fpFired) { _fpFired = false; return; } farmMainTap(); });
+  el.plots.addEventListener("pointerdown", function (e) {
+    _fpFired = false; _fpIdx = closestAttr(e.target, "data-i", el.plots);
+    _fpTimer = setTimeout(function () { _fpFired = true; farmAll(); }, 550);
+  });
+  el.plots.addEventListener("pointerup", _fpCancel);
+  el.plots.addEventListener("pointerleave", _fpCancel);
+  el.plots.addEventListener("pointercancel", _fpCancel);
+  el.plots.addEventListener("click", function (e) {
+    if (_fpFired) { _fpFired = false; return; }
+    var i = closestAttr(e.target, "data-i", el.plots);
+    if (i !== null) tapPlot(parseInt(i, 10));
+  });
 
   load();
   checkSeedRenewal();
   renderAll();
   setTab(state.tab);
   if (state.pending) showPendingDecision(); // resume a hatch decision (keep/sell or sell/replace)
+  resumeAutoOpen();                          // keep background auto-open going if it was left on
   setInterval(tick, 60);
   setInterval(save, 5000);
   window.addEventListener("beforeunload", save);
