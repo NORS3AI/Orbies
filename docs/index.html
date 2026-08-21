@@ -5,13 +5,13 @@
 <!-- Lock zoom on iOS: no pinch-zoom, no double-tap-zoom -->
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Orbies — Idle RPG &amp; Gacha Creature Collector</title>
-<meta name="description" content="Orbies is an incremental idle & gacha game. Hatch orbs into tiny creatures that battle rocks for you, sell duplicates for treats, level up, and evolve them into rare final forms." />
+<meta name="description" content="Orbies is an incremental idle & gacha game. Hatch orbs into creatures that battle rocks and floor bosses for you, sell duplicates for treats, level up, and evolve them into rare final forms." />
 <meta name="theme-color" content="#0b0b1a" />
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Orbies — Idle RPG & Gacha Creature Collector" />
-<meta property="og:description" content="Hatch orbs, collect Orbies that battle rocks for you, and evolve them into rare final forms." />
+<meta property="og:description" content="Hatch orbs, collect Orbies that battle rocks and bosses for you, and evolve them into rare final forms." />
 <meta property="og:url" content="https://nors3ai.github.io/Orbies/" />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='52' r='34' fill='%237c5cff'/%3E%3Ccircle cx='38' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='62' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='40' cy='45' r='3' fill='%23111'/%3E%3Ccircle cx='64' cy='45' r='3' fill='%23111'/%3E%3Cpath d='M40 64 Q50 72 60 64' stroke='%23111' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -86,10 +86,7 @@
   section { position: relative; z-index: 1; }
 
   /* ---- resource bar ---- */
-  .resbar {
-    display: flex; flex-wrap: wrap; gap: 8px; margin: 14px auto 8px;
-    justify-content: center;
-  }
+  .resbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px auto 8px; justify-content: center; }
   .res {
     display: flex; align-items: center; gap: 8px;
     background: var(--panel); border: 1px solid var(--panel-brd);
@@ -107,28 +104,34 @@
   .arena {
     position: relative; margin: 8px auto 0;
     background: var(--panel-2); border: 1px solid var(--panel-brd);
-    border-radius: 22px; box-shadow: var(--shadow); padding: 18px 16px 14px;
+    border-radius: 22px; box-shadow: var(--shadow); padding: 16px 16px 14px;
     overflow: hidden;
   }
+  .arena-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
   .floor-tag {
-    position: absolute; top: 12px; left: 14px;
-    font-size: .72rem; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft);
+    font-size: .74rem; letter-spacing: .5px; color: var(--ink-soft); font-weight: 800;
     background: rgba(124,92,255,0.14); border: 1px solid var(--panel-brd);
-    padding: 4px 10px; border-radius: 999px; font-weight: 700;
+    padding: 5px 11px; border-radius: 999px;
   }
+  .floor-tag.boss { color: #ffd0d4; background: rgba(255,95,109,0.14); border-color: rgba(255,95,109,0.4); }
   .dps-tag {
-    position: absolute; top: 12px; right: 14px;
     font-size: .72rem; letter-spacing: .5px; color: var(--mint); font-weight: 800;
     background: rgba(78,224,160,0.10); border: 1px solid rgba(78,224,160,0.28);
-    padding: 4px 10px; border-radius: 999px;
+    padding: 5px 11px; border-radius: 999px; white-space: nowrap;
   }
 
-  .rock-stage { position: relative; height: 168px; display: grid; place-items: center; margin-top: 26px; }
+  .rock-stage { position: relative; height: 168px; display: grid; place-items: center; margin-top: 10px; }
   #rock {
     font-size: 92px; line-height: 1; cursor: default; pointer-events: none;
     filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
     transition: transform .07s ease;
   }
+  #rock.boss {
+    font-size: 104px;
+    filter: drop-shadow(0 0 16px rgba(255,60,90,0.6)) drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+    animation: bosspulse 1.2s ease-in-out infinite;
+  }
+  @keyframes bosspulse { 0%,100% { transform: scale(1); } 50% { transform: scale(1.06); } }
   #rock.shake { animation: shake .12s ease; }
   @keyframes shake {
     0%,100% { transform: translate(0,0); }
@@ -148,10 +151,28 @@
     background: linear-gradient(90deg, #ff5f6d, #ff9e54);
     transform-origin: left center; transition: transform .08s linear;
   }
+  .hpbar > span.boss { background: linear-gradient(90deg, #b5179e, #ff5f6d); }
   .hpbar .hptext {
     position: relative; z-index: 2; font-size: .72rem; font-weight: 800;
     text-align: center; line-height: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.7);
   }
+
+  .timerbar {
+    width: min(360px, 82%); height: 13px; margin: 7px auto 0;
+    background: rgba(0,0,0,0.35); border: 1px solid var(--panel-brd);
+    border-radius: 999px; overflow: hidden; position: relative;
+  }
+  .timerbar > span {
+    position: absolute; inset: 0; width: 100%;
+    background: linear-gradient(90deg, #4ee0a0, #ffce54);
+    transform-origin: left center; transition: transform .1s linear;
+  }
+  .timerbar .timertext {
+    position: relative; z-index: 2; font-size: .68rem; font-weight: 800;
+    text-align: center; line-height: 13px; text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  }
+
+  .gate { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; margin-top: 12px; }
 
   /* fighters */
   .fighters { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 14px; min-height: 46px; }
@@ -172,7 +193,7 @@
   }
   @keyframes dmgrise { from { opacity: 1; transform: translateY(0);} to { opacity: 0; transform: translateY(-52px);} }
 
-  /* ---- action buttons ---- */
+  /* ---- buttons ---- */
   .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0 6px; }
   .btn {
     display: inline-flex; align-items: center; gap: 8px; justify-content: center;
@@ -185,6 +206,10 @@
   .btn:hover { transform: translateY(-2px); }
   .btn:active { transform: translateY(0) scale(.98); }
   .btn.primary { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; border-color: transparent; box-shadow: 0 10px 26px rgba(124,92,255,0.4); }
+  .btn.big { font-size: 1.05rem; padding: 14px 28px; min-height: 52px; }
+  .btn.fight { background: linear-gradient(120deg, #ff5f6d, #ff9e54); color: #2a0a00; border-color: transparent; box-shadow: 0 10px 26px rgba(255,95,109,0.4); }
+  .btn.descend { background: linear-gradient(120deg, var(--mint), var(--sky)); color: #04231a; border-color: transparent; box-shadow: 0 10px 26px rgba(78,224,160,0.4); }
+  .btn.danger { background: rgba(255,95,109,0.16); border-color: rgba(255,95,109,0.5); color: #ffd0d4; }
   .btn.small { padding: 8px 12px; font-size: .82rem; min-height: 38px; border-radius: 10px; }
   .btn:disabled { opacity: .38; cursor: not-allowed; transform: none; box-shadow: none; }
   .btn .cost { font-size: .78rem; opacity: .9; font-weight: 700; }
@@ -258,6 +283,7 @@
 
   @media (max-width: 480px) {
     #rock { font-size: 76px; }
+    #rock.boss { font-size: 88px; }
     .rock-stage { height: 150px; }
     .res { min-width: 84px; padding: 7px 11px; }
   }
@@ -297,14 +323,23 @@
     </div>
 
     <div class="arena">
-      <div class="floor-tag">Floor <span id="floorNum">1</span></div>
-      <div class="dps-tag" id="teamDps">0 DPS</div>
+      <div class="arena-top">
+        <div class="floor-tag" id="floorTag">Floor 1 · Rock 1/10</div>
+        <div class="dps-tag" id="teamDps">0 DPS</div>
+      </div>
 
       <div class="rock-stage">
-        <div id="rock" role="img" aria-label="The rock your Orbies are attacking">🪨</div>
+        <div id="rock" role="img" aria-label="The target your Orbies are attacking">🪨</div>
       </div>
 
       <div class="hpbar"><span id="hpFill"></span><div class="hptext" id="hpText">0 / 0</div></div>
+
+      <div class="timerbar" id="timerWrap" style="display:none;"><span id="timerFill"></span><div class="timertext" id="timerText">⏱ 30s</div></div>
+
+      <div class="gate">
+        <button class="btn primary big" id="progressBtn" style="display:none;"></button>
+        <button class="btn danger" id="giveUpBtn" style="display:none;">🏳️ Give Up</button>
+      </div>
 
       <div class="fighters" id="fighters"></div>
     </div>
@@ -363,9 +398,8 @@
     if (e.touches && e.touches.length > 1) e.preventDefault(); // block pinch
   }, { passive: false });
   document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
-  // Backup double-tap guard for old iOS (pre-touch-action support): swallow the
-  // zoom default on a fast second tap, but never on interactive controls so
-  // rapid button taps (e.g. fast leveling) always register.
+  // Backup double-tap guard for old iOS: swallow the zoom default on a fast
+  // second tap, but never on interactive controls so rapid taps still register.
   var _lastTouchEnd = 0;
   document.addEventListener("touchend", function (e) {
     var now = Date.now();
@@ -408,13 +442,10 @@
     "#8b8b96", "#c3ccda", "#4ee0a0", "#58c9ff", "#4f7cff", "#a855f7", "#ffce54",
     "#ff8a3d", "#ff5db1", "#ff4d4d", "#e7f0ff", "#7cf6ff", "#fff2a8", "#c07bff"
   ];
-  // Roll weights for a freshly-hatched Orbie's BASE rarity (skewed low).
   var RARITY_WEIGHTS = [30, 26, 18, 11, 6, 3.4, 2, 1.1, 0.6, 0.35, 0.18, 0.08, 0.03, 0.01];
-
   var TOP_RARITY = RARITIES.length - 1; // 13 = Void-born
 
-  // Species are cosmetic (name + emoji + small power multiplier). Any species
-  // can roll any rarity.
+  // Species are cosmetic (name + emoji + small power multiplier).
   var SPECIES = [
     { n: "Pebl", e: "🐣", p: 1.00 }, { n: "Chik", e: "🐤", p: 1.05 },
     { n: "Foxo", e: "🦊", p: 1.12 }, { n: "Ribb", e: "🐸", p: 0.98 },
@@ -430,25 +461,33 @@
     { n: "Rexy", e: "🦖", p: 1.30 }, { n: "Wisp", e: "👻", p: 1.15 }
   ];
 
-  var MAX_LEVEL = 50;
-  var MAX_ATTACKERS = 8; // up to 8 Orbies strike the rock at once
+  var BOSS_EMOJI = ["👹", "🐉", "👺", "🦍", "🐗", "🦂", "🦖", "🐊", "🦕", "🦑", "👾", "🤖", "🔥", "💀", "🐙"];
 
-  /* ---- derived stat formulas (all tunable) ---- */
+  /* ---- tuning constants (all easily adjustable) ---- */
+  var MAX_LEVEL = 50;
+  var MAX_ATTACKERS = 8;      // up to 8 Orbies strike at once
+  var ROCKS_PER_FLOOR = 10;   // rocks before the floor boss
+  var BOSS_TIME_MS = 30000;   // 30-second boss timer
+  var BOSS_BASE_HP = 1000;    // boss 1 HP
+  var BOSS_GROWTH = 1.55;     // boss HP growth per floor
+  var DESCEND_ORB_BONUS = 5;  // free orbs for descending after a boss
+
+  /* ---- derived stat formulas ---- */
   function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
   function hitDamage(ob) {
     var r = rarityOf(ob);
-    return Math.max(1, Math.round((1 + r) * (1 + (ob.level - 1) * 0.4) * ob.p));
+    return Math.max(1, Math.round((1 + r) * (1 + (ob.level - 1) * 0.5) * ob.p));
   }
-  function attackInterval(ob) { // ms between this Orbie's strikes
-    var r = rarityOf(ob);
-    return Math.max(450, 1100 - r * 45);
-  }
+  function attackInterval(ob) { var r = rarityOf(ob); return Math.max(450, 1050 - r * 45); }
   function orbieDps(ob) { return hitDamage(ob) / (attackInterval(ob) / 1000); }
 
-  function rockMaxHp(f) { return Math.round(8 * Math.pow(1.2, f - 1)); }
-  function rockReward(f) { return Math.round(3 * Math.pow(1.18, f - 1)) + 2; }
-  function buyOrbCost() { return Math.round(15 * Math.pow(1.13, state.orbsBought)); }
-  function expandCost() { return Math.round(150 * Math.pow(2, state.holdCap - 3)); }
+  function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(1.2, floor - 1) * (1 + idx * 0.12)); }
+  function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
+  function bossMaxHp(floor) { return Math.round(BOSS_BASE_HP * Math.pow(BOSS_GROWTH, floor - 1)); }
+  function bossEmoji(floor) { return BOSS_EMOJI[(floor - 1) % BOSS_EMOJI.length]; }
+
+  function buyOrbCost() { return Math.round(12 * Math.pow(1.12, state.orbsBought)); }
+  function expandCost() { return Math.round(80 * Math.pow(1.8, state.holdCap - 3)); }
   function levelUpCost(ob) { var r = rarityOf(ob); return Math.round((2 + ob.level * 1.6) * (1 + r * 0.25)); }
   function sellValue(ob) { var r = rarityOf(ob); return Math.max(1, Math.round(Math.pow(1 + r, 1.4) * (2 + ob.level * 0.5))); }
 
@@ -463,23 +502,27 @@
     var total = 0, k;
     for (k = 0; k < RARITY_WEIGHTS.length; k++) total += RARITY_WEIGHTS[k];
     var roll = Math.random() * total;
-    for (k = 0; k < RARITY_WEIGHTS.length; k++) {
-      roll -= RARITY_WEIGHTS[k];
-      if (roll <= 0) return k;
-    }
+    for (k = 0; k < RARITY_WEIGHTS.length; k++) { roll -= RARITY_WEIGHTS[k]; if (roll <= 0) return k; }
     return 0;
   }
+
+  function clamp(x, a, b) { return Math.max(a, Math.min(b, x)); }
 
   /* ============================================================
      State + persistence
      ============================================================ */
-  var SAVE_KEY = "orbies-save-v2";
+  var SAVE_KEY = "orbies-save-v3";
   var state, nextId, timers;
 
+  // phase: 'rocks' (clearing 10 rocks) | 'gate' (boss ready, farming) |
+  //        'boss' (boss fight) | 'cleared' (boss beaten, ready to descend)
   function freshState() {
     return {
-      gold: 0, treats: 0, orbs: 5, floor: 1, holdCap: 3, orbsBought: 0,
-      rockHp: rockMaxHp(1), roster: [], nid: 1
+      gold: 0, treats: 0, orbs: 5, orbsBought: 0,
+      holdCap: 3, roster: [], nid: 1,
+      floor: 1, rockIndex: 0, phase: "rocks",
+      rockHp: rockMaxHp(1, 0),
+      bossHp: 0, bossMaxHp: 0, bossEndsAt: 0
     };
   }
 
@@ -493,12 +536,18 @@
           state.gold = Math.max(0, p.gold | 0);
           state.treats = Math.max(0, p.treats | 0);
           state.orbs = Math.max(0, p.orbs | 0);
-          state.floor = Math.max(1, p.floor | 0);
-          state.holdCap = Math.min(MAX_ATTACKERS, Math.max(3, p.holdCap | 0));
           state.orbsBought = Math.max(0, p.orbsBought | 0);
+          state.holdCap = Math.min(MAX_ATTACKERS, Math.max(3, p.holdCap | 0));
           state.nid = Math.max(1, p.nid | 0);
           state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
-          var mh = rockMaxHp(state.floor);
+          state.floor = Math.max(1, p.floor | 0);
+          state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
+          var ph = p.phase;
+          // Never resume an in-progress boss across a reload — drop to the gate.
+          if (ph === "boss") ph = "gate";
+          if (ph !== "rocks" && ph !== "gate" && ph !== "cleared") ph = "rocks";
+          state.phase = ph;
+          var mh = currentRockMax();
           state.rockHp = (typeof p.rockHp === "number" && p.rockHp > 0) ? Math.min(p.rockHp, mh) : mh;
         }
       }
@@ -513,18 +562,13 @@
     ob.base = Math.min(TOP_RARITY, Math.max(0, ob.base | 0));
     ob.level = Math.min(MAX_LEVEL, Math.max(1, ob.level | 0));
     ob.stage = Math.min(2, Math.max(0, ob.stage | 0));
-    ob.p = SPECIES[ob.si].p;
-    ob.n = SPECIES[ob.si].n;
-    ob.e = SPECIES[ob.si].e;
+    ob.p = SPECIES[ob.si].p; ob.n = SPECIES[ob.si].n; ob.e = SPECIES[ob.si].e;
     if (typeof ob.id !== "number") ob.id = nextId++;
     return true;
   }
 
   var saveTimer = null;
-  function saveSoon() {
-    if (saveTimer) return;
-    saveTimer = setTimeout(function () { saveTimer = null; save(); }, 400);
-  }
+  function saveSoon() { if (saveTimer) return; saveTimer = setTimeout(function () { saveTimer = null; save(); }, 400); }
   function save() {
     state.nid = nextId;
     try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
@@ -538,11 +582,16 @@
     treats: document.getElementById("rTreats"),
     orbs: document.getElementById("rOrbs"),
     hold: document.getElementById("rHold"),
-    floor: document.getElementById("floorNum"),
+    floorTag: document.getElementById("floorTag"),
     teamDps: document.getElementById("teamDps"),
     rock: document.getElementById("rock"),
     hpFill: document.getElementById("hpFill"),
     hpText: document.getElementById("hpText"),
+    timerWrap: document.getElementById("timerWrap"),
+    timerFill: document.getElementById("timerFill"),
+    timerText: document.getElementById("timerText"),
+    progressBtn: document.getElementById("progressBtn"),
+    giveUpBtn: document.getElementById("giveUpBtn"),
     fighters: document.getElementById("fighters"),
     roster: document.getElementById("roster"),
     rosterCap: document.getElementById("rosterCap"),
@@ -568,7 +617,7 @@
     el.toast.textContent = msg;
     el.toast.classList.add("show");
     if (toastTimer) clearTimeout(toastTimer);
-    toastTimer = setTimeout(function () { el.toast.classList.remove("show"); }, 1900);
+    toastTimer = setTimeout(function () { el.toast.classList.remove("show"); }, 2100);
   }
 
   function showReveal(ob) {
@@ -584,8 +633,8 @@
   /* ============================================================
      Fighters (arena) — rebuilt only when the attacker set changes
      ============================================================ */
-  var fighterEls = {};      // id -> element
-  var fighterSig = "";      // signature of current attacker ids
+  var fighterEls = {};
+  var fighterSig = "";
 
   function activeAttackers() { return state.roster.slice(0, MAX_ATTACKERS); }
 
@@ -605,8 +654,7 @@
     }
     atk.forEach(function (ob) {
       var f = document.createElement("div");
-      f.className = "fighter";
-      f.textContent = ob.e;
+      f.className = "fighter"; f.textContent = ob.e;
       el.fighters.appendChild(f);
       fighterEls[ob.id] = f;
     });
@@ -614,64 +662,212 @@
 
   function triggerHit(id, dmg) {
     var f = fighterEls[id];
-    if (f) {
-      f.classList.remove("hit"); void f.offsetWidth; f.classList.add("hit");
-    }
-    // floating damage number over the rock
+    if (f) { f.classList.remove("hit"); void f.offsetWidth; f.classList.add("hit"); }
     var d = document.createElement("div");
     d.className = "dmg-float";
-    d.textContent = "-" + dmg;
+    d.textContent = "-" + fmt(dmg);
     d.style.left = (46 + Math.random() * 8) + "%";
     d.style.top = "34%";
-    d.style.color = "#fff";
     el.rock.parentNode.appendChild(d);
     setTimeout(function () { d.remove(); }, 700);
-
     el.rock.classList.remove("shake"); void el.rock.offsetWidth; el.rock.classList.add("shake");
+  }
+
+  /* ============================================================
+     Floor / rock / boss state machine
+     ============================================================ */
+  function currentRockMax() {
+    var idx = (state.phase === "rocks") ? state.rockIndex : (ROCKS_PER_FLOOR - 1);
+    return rockMaxHp(state.floor, Math.min(idx, ROCKS_PER_FLOOR - 1));
+  }
+
+  function handleRockBreak() {
+    var reward = rockReward(state.floor, Math.min(state.rockIndex, ROCKS_PER_FLOOR - 1));
+    state.gold += reward;
+    el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
+
+    if (state.phase === "rocks") {
+      state.rockIndex += 1;
+      if (state.rockIndex >= ROCKS_PER_FLOOR) {
+        enterGate();
+      } else {
+        state.rockHp = currentRockMax();
+      }
+    } else {
+      // 'gate' or 'cleared' — keep farming the last rock for gold
+      state.rockHp = currentRockMax();
+    }
+    renderStats();
+    renderPhase();
+    saveSoon();
+  }
+
+  function enterGate() {
+    state.phase = "gate";
+    state.rockHp = currentRockMax();
+  }
+
+  function startBoss() {
+    if (state.phase !== "gate") return;
+    state.phase = "boss";
+    state.bossMaxHp = bossMaxHp(state.floor);
+    state.bossHp = state.bossMaxHp;
+    state.bossEndsAt = Date.now() + BOSS_TIME_MS;
+    // reset swing timers so the fight kicks off promptly, staggered
+    var now = Date.now();
+    activeAttackers().forEach(function (o, i) { timers[o.id] = now + i * 120; });
+    renderPhase();
+    renderStats();
+    toast("⚔️ Boss fight! Kill it within 30 seconds.");
+    saveSoon();
+  }
+
+  function bossWin() {
+    state.phase = "cleared";
+    state.gold += rockReward(state.floor, ROCKS_PER_FLOOR - 1) * 10; // boss gold bonus
+    state.rockHp = currentRockMax();
+    el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
+    renderPhase();
+    renderStats();
+    toast("🎉 Boss defeated! Tap Descend +5 for 5 free orbs.");
+    saveSoon();
+  }
+
+  function bossTimeout() {
+    state.phase = "gate";
+    state.rockHp = currentRockMax();
+    renderPhase();
+    renderStats();
+    toast("⏱ Out of time! Farm this floor, level up, then try the boss again.");
+    saveSoon();
+  }
+
+  function giveUp() {
+    if (state.phase !== "boss") return;
+    state.phase = "gate";
+    state.rockHp = currentRockMax();
+    renderPhase();
+    renderStats();
+    toast("🏳️ Retreated. Prepare, then fight the boss when you're ready.");
+    saveSoon();
+  }
+
+  function descend() {
+    if (state.phase !== "cleared") return;
+    state.floor += 1;
+    state.rockIndex = 0;
+    state.phase = "rocks";
+    state.orbs += DESCEND_ORB_BONUS;
+    state.rockHp = currentRockMax();
+    renderAll();
+    toast("⬇️ Descended to Floor " + state.floor + "! +" + DESCEND_ORB_BONUS + " orbs 🔮");
+    saveSoon();
   }
 
   /* ============================================================
      Combat loop
      ============================================================ */
-  function breakRock() {
-    var reward = rockReward(state.floor);
-    state.gold += reward;
-    state.floor += 1;
-    state.rockHp = rockMaxHp(state.floor);
-    el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
-    renderStats();
-    saveSoon();
-  }
-
   function tick() {
     var now = Date.now();
     var atk = activeAttackers();
-    for (var i = 0; i < atk.length; i++) {
-      var ob = atk[i];
-      if (timers[ob.id] == null) timers[ob.id] = now + i * 150; // stagger => take turns
-      if (now >= timers[ob.id]) {
-        var dmg = hitDamage(ob);
-        state.rockHp -= dmg;
-        triggerHit(ob.id, dmg);
-        timers[ob.id] = now + attackInterval(ob);
-        if (state.rockHp <= 0) breakRock();
+
+    if (state.phase === "boss") {
+      if (now >= state.bossEndsAt) { bossTimeout(); return; }
+      for (var i = 0; i < atk.length; i++) {
+        var ob = atk[i];
+        if (timers[ob.id] == null) timers[ob.id] = now + i * 120;
+        if (now >= timers[ob.id]) {
+          var dmg = hitDamage(ob);
+          state.bossHp -= dmg;
+          triggerHit(ob.id, dmg);
+          timers[ob.id] = now + attackInterval(ob);
+          if (state.bossHp <= 0) { bossWin(); return; }
+        }
       }
+      updateHpBar();
+      updateTimer(now);
+    } else {
+      for (var j = 0; j < atk.length; j++) {
+        var o2 = atk[j];
+        if (timers[o2.id] == null) timers[o2.id] = now + j * 150;
+        if (now >= timers[o2.id]) {
+          var d2 = hitDamage(o2);
+          state.rockHp -= d2;
+          triggerHit(o2.id, d2);
+          timers[o2.id] = now + attackInterval(o2);
+          if (state.rockHp <= 0) handleRockBreak();
+        }
+      }
+      updateHpBar();
     }
-    updateRockBar();
   }
 
-  function updateRockBar() {
-    var mh = rockMaxHp(state.floor);
-    var frac = Math.max(0, Math.min(1, state.rockHp / mh));
-    el.hpFill.style.transform = "scaleX(" + frac + ")";
-    el.hpText.textContent = Math.max(0, Math.ceil(state.rockHp)) + " / " + mh;
+  function updateHpBar() {
+    if (state.phase === "boss") {
+      var f = state.bossMaxHp > 0 ? clamp(state.bossHp / state.bossMaxHp, 0, 1) : 0;
+      el.hpFill.style.transform = "scaleX(" + f + ")";
+      el.hpText.textContent = Math.max(0, Math.ceil(state.bossHp)) + " / " + fmt(state.bossMaxHp);
+    } else {
+      var mh = currentRockMax();
+      var fr = clamp(state.rockHp / mh, 0, 1);
+      el.hpFill.style.transform = "scaleX(" + fr + ")";
+      el.hpText.textContent = Math.max(0, Math.ceil(state.rockHp)) + " / " + fmt(mh);
+    }
+  }
+
+  function updateTimer(now) {
+    var left = Math.max(0, state.bossEndsAt - now);
+    el.timerFill.style.transform = "scaleX(" + (left / BOSS_TIME_MS) + ")";
+    el.timerText.textContent = "⏱ " + (left / 1000).toFixed(1) + "s";
   }
 
   /* ============================================================
      Rendering
      ============================================================ */
-  function teamDps() {
-    return activeAttackers().reduce(function (s, o) { return s + orbieDps(o); }, 0);
+  function teamDps() { return activeAttackers().reduce(function (s, o) { return s + orbieDps(o); }, 0); }
+
+  function renderPhase() {
+    var ph = state.phase;
+    // floor tag
+    var tag = "Floor " + state.floor + " · ";
+    if (ph === "rocks") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR;
+    else if (ph === "gate") tag += "Boss ready";
+    else if (ph === "boss") tag += "⚔️ BOSS";
+    else tag += "Cleared ✓";
+    el.floorTag.textContent = tag;
+    el.floorTag.classList.toggle("boss", ph === "boss");
+
+    // progression button (Fight Boss / Descend +5)
+    if (ph === "gate") {
+      el.progressBtn.style.display = "";
+      el.progressBtn.textContent = "⚔️ Fight Boss";
+      el.progressBtn.className = "btn big fight";
+    } else if (ph === "cleared") {
+      el.progressBtn.style.display = "";
+      el.progressBtn.textContent = "⬇️ Descend +" + DESCEND_ORB_BONUS;
+      el.progressBtn.className = "btn big descend";
+    } else {
+      el.progressBtn.style.display = "none";
+    }
+
+    // give-up + timer only during the boss
+    el.giveUpBtn.style.display = (ph === "boss") ? "" : "none";
+    el.timerWrap.style.display = (ph === "boss") ? "" : "none";
+
+    // boss vs rock visual
+    if (ph === "boss") {
+      el.rock.textContent = bossEmoji(state.floor);
+      el.rock.classList.add("boss");
+      el.hpFill.classList.add("boss");
+    } else {
+      el.rock.textContent = "🪨";
+      el.rock.classList.remove("boss");
+      el.hpFill.classList.remove("boss");
+    }
+
+    // refresh the HP bar immediately so a phase change never flashes stale HP
+    updateHpBar();
+    if (ph === "boss") updateTimer(Date.now());
   }
 
   function renderStats() {
@@ -679,10 +875,8 @@
     el.treats.textContent = fmt(state.treats);
     el.orbs.textContent = fmt(state.orbs);
     el.hold.textContent = state.roster.length + "/" + state.holdCap;
-    el.floor.textContent = state.floor;
     el.teamDps.textContent = fmt(Math.round(teamDps() * 10) / 10) + " DPS";
 
-    // action buttons
     var full = state.roster.length >= state.holdCap;
     el.openOrb.disabled = state.orbs <= 0 || full;
     el.openHint.textContent = state.orbs > 0 ? "(" + state.orbs + " left)" : "(none)";
@@ -704,10 +898,7 @@
     el.rosterCap.textContent = "(" + state.roster.length + " / " + state.holdCap + " held · up to " + MAX_ATTACKERS + " fight at once)";
   }
 
-  function stars(stage) {
-    if (stage === 0) return "";
-    return stage === 1 ? "✦" : "✦✦";
-  }
+  function stars(stage) { return stage === 0 ? "" : (stage === 1 ? "✦" : "✦✦"); }
 
   function renderRoster() {
     el.roster.innerHTML = "";
@@ -723,7 +914,6 @@
       var evo = canEvolve(ob);
       var lvCost = levelUpCost(ob);
       var sell = sellValue(ob);
-      var maxed = ob.level >= MAX_LEVEL && ob.stage >= 2;
 
       card.innerHTML =
         '<div class="top">' +
@@ -742,12 +932,10 @@
 
       var btns = card.querySelector(".btns");
 
-      // Level up
       var lvBtn = document.createElement("button");
       lvBtn.className = "btn small";
       if (ob.level >= MAX_LEVEL) {
-        lvBtn.textContent = "Lv MAX";
-        lvBtn.disabled = true;
+        lvBtn.textContent = "Lv MAX"; lvBtn.disabled = true;
       } else {
         lvBtn.innerHTML = "⬆ Lv <span class=\"cost\">🍬" + fmt(lvCost) + "</span>";
         lvBtn.disabled = state.treats < lvCost;
@@ -755,7 +943,6 @@
       }
       btns.appendChild(lvBtn);
 
-      // Evolve (unlocks at Lv20, then Lv50 for final form)
       if (ob.stage < 2) {
         var evBtn = document.createElement("button");
         evBtn.className = "btn small evolve";
@@ -763,18 +950,15 @@
           evBtn.textContent = ob.stage === 0 ? "✨ Evolve" : "🌟 Final Form";
           evBtn.addEventListener("click", function () { doEvolve(ob); });
         } else {
-          evBtn.textContent = "🔒 Evo Lv" + evolveLevel(ob);
-          evBtn.disabled = true;
+          evBtn.textContent = "🔒 Evo Lv" + evolveLevel(ob); evBtn.disabled = true;
         }
         btns.appendChild(evBtn);
       } else {
         var fin = document.createElement("span");
-        fin.className = "maxed";
-        fin.textContent = "★ Final Form";
+        fin.className = "maxed"; fin.textContent = "★ Final Form";
         btns.appendChild(fin);
       }
 
-      // Sell
       var sellBtn = document.createElement("button");
       sellBtn.className = "btn small sell";
       sellBtn.innerHTML = "💰 Sell <span class=\"cost\">🍬" + fmt(sell) + "</span>";
@@ -786,10 +970,11 @@
   }
 
   function renderAll() {
+    renderPhase();
     renderStats();
     renderRoster();
     syncFighters();
-    updateRockBar();
+    updateHpBar();
   }
 
   function fmt(n) {
@@ -797,9 +982,7 @@
     if (n < 1000) return "" + n;
     var units = [["B", 1e9], ["M", 1e6], ["K", 1e3]];
     for (var u = 0; u < units.length; u++) {
-      if (n >= units[u][1]) {
-        return (n / units[u][1]).toFixed(2).replace(/\.?0+$/, "") + units[u][0];
-      }
+      if (n >= units[u][1]) return (n / units[u][1]).toFixed(2).replace(/\.?0+$/, "") + units[u][0];
     }
     return "" + n;
   }
@@ -810,14 +993,11 @@
   function makeOrbie() {
     var si = Math.floor(Math.random() * SPECIES.length);
     var sp = SPECIES[si];
-    return {
-      id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p,
-      base: weightedRarity(), level: 1, stage: 0, _new: true
-    };
+    return { id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p, base: weightedRarity(), level: 1, stage: 0, _new: true };
   }
 
   function doOpenOrb() {
-    if (state.orbs <= 0) { toast("No orbs to open — buy one with gold."); return; }
+    if (state.orbs <= 0) { toast("No orbs to open — buy one with gold or clear a boss."); return; }
     if (state.roster.length >= state.holdCap) {
       toast("Hold is full (" + state.holdCap + "). Sell an Orbie or expand your hold.");
       return;
@@ -834,9 +1014,7 @@
   function doBuyOrb() {
     var cost = buyOrbCost();
     if (state.gold < cost) { toast("Not enough gold."); return; }
-    state.gold -= cost;
-    state.orbs += 1;
-    state.orbsBought += 1;
+    state.gold -= cost; state.orbs += 1; state.orbsBought += 1;
     renderStats();
     toast("Bought an orb! You now hold " + state.orbs + ".");
     saveSoon();
@@ -846,8 +1024,7 @@
     if (state.holdCap >= MAX_ATTACKERS) { toast("Hold is already at the max of " + MAX_ATTACKERS + "."); return; }
     var cost = expandCost();
     if (state.gold < cost) { toast("Not enough gold."); return; }
-    state.gold -= cost;
-    state.holdCap += 1;
+    state.gold -= cost; state.holdCap += 1;
     renderAll();
     toast("Hold expanded to " + state.holdCap + " Orbies!");
     saveSoon();
@@ -857,8 +1034,7 @@
     if (ob.level >= MAX_LEVEL) return;
     var cost = levelUpCost(ob);
     if (state.treats < cost) { toast("Not enough treats to level up."); return; }
-    state.treats -= cost;
-    ob.level += 1;
+    state.treats -= cost; ob.level += 1;
     renderAll();
     saveSoon();
   }
@@ -866,8 +1042,7 @@
   function doEvolve(ob) {
     if (!canEvolve(ob)) return;
     var beforeName = RARITIES[rarityOf(ob)];
-    ob.stage += 1;
-    ob._new = true; // pop animation
+    ob.stage += 1; ob._new = true;
     var afterName = RARITIES[rarityOf(ob)];
     renderAll();
     saveSoon();
@@ -887,7 +1062,7 @@
   }
 
   function doReset() {
-    if (!confirm("Reset all progress? This clears your Orbies, gold, and treats.")) return;
+    if (!confirm("Reset all progress? This clears your Orbies, gold, treats, and floor.")) return;
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     load();
     renderAll();
@@ -900,6 +1075,11 @@
   el.openOrb.addEventListener("click", doOpenOrb);
   el.buyOrb.addEventListener("click", doBuyOrb);
   el.expandHold.addEventListener("click", doExpandHold);
+  el.giveUpBtn.addEventListener("click", giveUp);
+  el.progressBtn.addEventListener("click", function () {
+    if (state.phase === "gate") startBoss();
+    else if (state.phase === "cleared") descend();
+  });
   document.getElementById("reset").addEventListener("click", doReset);
 
   load();
