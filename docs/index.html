@@ -2,15 +2,16 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- Lock zoom on iOS: no pinch-zoom, no double-tap-zoom -->
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Orbies — Idle RPG &amp; Gacha Creature Collector</title>
-<meta name="description" content="Orbies is an addictive incremental idle & gacha game. Smash rocks, earn coins, summon over 100 tiny creatures, farm crops, and climb the arena leaderboards." />
+<meta name="description" content="Orbies is an incremental idle & gacha game. Hatch orbs into tiny creatures that battle rocks for you, sell duplicates for treats, level up, and evolve them into rare final forms." />
 <meta name="theme-color" content="#0b0b1a" />
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website" />
 <meta property="og:title" content="Orbies — Idle RPG & Gacha Creature Collector" />
-<meta property="og:description" content="Break rocks, earn coins, and summon tiny creatures called Orbies that fight and idle for you." />
+<meta property="og:description" content="Hatch orbs, collect Orbies that battle rocks for you, and evolve them into rare final forms." />
 <meta property="og:url" content="https://nors3ai.github.io/Orbies/" />
 
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='52' r='34' fill='%237c5cff'/%3E%3Ccircle cx='38' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='62' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='40' cy='45' r='3' fill='%23111'/%3E%3Ccircle cx='64' cy='45' r='3' fill='%23111'/%3E%3Cpath d='M40 64 Q50 72 60 64' stroke='%23111' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
@@ -20,25 +21,33 @@
     --bg: #0b0b1a;
     --bg-2: #12122b;
     --panel: rgba(30, 28, 66, 0.55);
+    --panel-2: rgba(20, 19, 48, 0.66);
     --panel-brd: rgba(140, 120, 255, 0.22);
     --ink: #eef0ff;
     --ink-soft: #b6b8dd;
     --violet: #7c5cff;
     --violet-2: #a98bff;
     --gold: #ffce54;
+    --treat: #ff9ecb;
     --mint: #4ee0a0;
     --pink: #ff77c8;
     --sky: #58c9ff;
+    --danger: #ff5f6d;
     --shadow: 0 18px 50px rgba(0,0,0,0.45);
     --font: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
   }
 
-  * { box-sizing: border-box; }
+  * { box-sizing: border-box; touch-action: manipulation; }
 
-  html { scroll-behavior: smooth; }
+  html, body {
+    margin: 0;
+    -webkit-text-size-adjust: 100%;
+    -webkit-user-select: none; user-select: none;
+    -webkit-touch-callout: none;
+    overscroll-behavior: none;
+  }
 
   body {
-    margin: 0;
     font-family: var(--font);
     color: var(--ink);
     background:
@@ -52,151 +61,206 @@
   }
 
   a { color: var(--violet-2); }
+  .wrap { width: min(1000px, 94vw); margin: 0 auto; }
 
-  .wrap { width: min(1100px, 92vw); margin: 0 auto; }
-
-  /* ---------- floating orbs background ---------- */
+  /* floating background orbs */
   .field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  .field .orb {
-    position: absolute;
-    border-radius: 50%;
-    filter: blur(0.5px);
-    opacity: 0.55;
-    animation: drift linear infinite;
-  }
+  .field .orb { position: absolute; border-radius: 50%; opacity: .5; animation: drift linear infinite; }
   @keyframes drift {
-    0%   { transform: translateY(0) translateX(0) scale(1); }
-    50%  { transform: translateY(-40px) translateX(24px) scale(1.08); }
+    0% { transform: translateY(0) translateX(0) scale(1); }
+    50% { transform: translateY(-40px) translateX(24px) scale(1.08); }
     100% { transform: translateY(0) translateX(0) scale(1); }
   }
 
-  /* ---------- top nav ---------- */
   header.nav {
     position: sticky; top: 0; z-index: 20;
     backdrop-filter: blur(10px);
-    background: rgba(11, 11, 26, 0.62);
+    background: rgba(11, 11, 26, 0.7);
     border-bottom: 1px solid var(--panel-brd);
   }
-  .nav-in { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
-  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.5px; }
-  .brand .badge { width: 34px; height: 34px; }
-  .nav-links { margin-left: auto; display: flex; gap: 22px; font-weight: 600; font-size: 0.95rem; }
-  .nav-links a { color: var(--ink-soft); text-decoration: none; transition: color .2s; }
-  .nav-links a:hover { color: var(--ink); }
-  @media (max-width: 680px) { .nav-links { display: none; } }
+  .nav-in { display: flex; align-items: center; gap: 12px; padding: 10px 0; }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 800; font-size: 1.15rem; letter-spacing: .5px; }
+  .brand .badge { width: 30px; height: 30px; }
+  .nav-right { margin-left: auto; display: flex; gap: 8px; align-items: center; }
 
-  /* ---------- hero ---------- */
   section { position: relative; z-index: 1; }
-  .hero { padding: 68px 0 40px; text-align: center; }
-  .kicker {
-    display: inline-block;
-    padding: 6px 14px; border-radius: 999px;
-    background: rgba(124,92,255,0.16);
-    border: 1px solid var(--panel-brd);
-    color: var(--violet-2); font-weight: 700; font-size: 0.8rem;
-    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 22px;
+
+  /* ---- resource bar ---- */
+  .resbar {
+    display: flex; flex-wrap: wrap; gap: 8px; margin: 14px auto 8px;
+    justify-content: center;
   }
-  h1 {
-    margin: 0 0 14px; font-size: clamp(2.6rem, 7vw, 4.6rem); line-height: 1.02;
-    background: linear-gradient(120deg, #fff 0%, var(--violet-2) 45%, var(--sky) 100%);
-    -webkit-background-clip: text; background-clip: text; color: transparent;
-    letter-spacing: -1px;
+  .res {
+    display: flex; align-items: center; gap: 8px;
+    background: var(--panel); border: 1px solid var(--panel-brd);
+    border-radius: 12px; padding: 8px 14px; min-width: 96px;
   }
-  .tag { color: var(--ink-soft); font-size: clamp(1rem, 2.4vw, 1.3rem); max-width: 620px; margin: 0 auto 30px; }
-  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .res .ico { font-size: 1.15rem; }
+  .res .v { font-weight: 800; font-size: 1.05rem; line-height: 1; }
+  .res .k { font-size: .62rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); }
+  .res.gold .v { color: var(--gold); }
+  .res.treat .v { color: var(--treat); }
+  .res.orb .v { color: var(--violet-2); }
+  .res.hold .v { color: var(--mint); }
+
+  /* ---- arena ---- */
+  .arena {
+    position: relative; margin: 8px auto 0;
+    background: var(--panel-2); border: 1px solid var(--panel-brd);
+    border-radius: 22px; box-shadow: var(--shadow); padding: 18px 16px 14px;
+    overflow: hidden;
+  }
+  .floor-tag {
+    position: absolute; top: 12px; left: 14px;
+    font-size: .72rem; letter-spacing: 1px; text-transform: uppercase; color: var(--ink-soft);
+    background: rgba(124,92,255,0.14); border: 1px solid var(--panel-brd);
+    padding: 4px 10px; border-radius: 999px; font-weight: 700;
+  }
+  .dps-tag {
+    position: absolute; top: 12px; right: 14px;
+    font-size: .72rem; letter-spacing: .5px; color: var(--mint); font-weight: 800;
+    background: rgba(78,224,160,0.10); border: 1px solid rgba(78,224,160,0.28);
+    padding: 4px 10px; border-radius: 999px;
+  }
+
+  .rock-stage { position: relative; height: 168px; display: grid; place-items: center; margin-top: 26px; }
+  #rock {
+    font-size: 92px; line-height: 1; cursor: default; pointer-events: none;
+    filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+    transition: transform .07s ease;
+  }
+  #rock.shake { animation: shake .12s ease; }
+  @keyframes shake {
+    0%,100% { transform: translate(0,0); }
+    25% { transform: translate(-4px,2px) rotate(-2deg); }
+    75% { transform: translate(4px,-2px) rotate(2deg); }
+  }
+  #rock.pop { animation: rockpop .4s ease; }
+  @keyframes rockpop { 0% { transform: scale(1);} 40% { transform: scale(1.25);} 100% { transform: scale(1);} }
+
+  .hpbar {
+    width: min(360px, 82%); height: 16px; margin: 4px auto 0;
+    background: rgba(0,0,0,0.35); border: 1px solid var(--panel-brd);
+    border-radius: 999px; overflow: hidden; position: relative;
+  }
+  .hpbar > span {
+    position: absolute; inset: 0; width: 100%;
+    background: linear-gradient(90deg, #ff5f6d, #ff9e54);
+    transform-origin: left center; transition: transform .08s linear;
+  }
+  .hpbar .hptext {
+    position: relative; z-index: 2; font-size: .72rem; font-weight: 800;
+    text-align: center; line-height: 16px; text-shadow: 0 1px 2px rgba(0,0,0,0.7);
+  }
+
+  /* fighters */
+  .fighters { display: flex; justify-content: center; flex-wrap: wrap; gap: 6px; margin-top: 14px; min-height: 46px; }
+  .fighter {
+    position: relative; width: 44px; height: 44px; display: grid; place-items: center;
+    font-size: 26px; border-radius: 12px;
+    background: rgba(124,92,255,0.10); border: 1px solid var(--panel-brd);
+    transition: transform .12s ease;
+  }
+  .fighter.hit { animation: lunge .22s ease; }
+  @keyframes lunge { 0% { transform: translateY(0);} 45% { transform: translateY(-14px) scale(1.12);} 100% { transform: translateY(0);} }
+  .empty-note { color: var(--ink-soft); font-size: .86rem; text-align: center; }
+
+  .dmg-float {
+    position: absolute; z-index: 5; pointer-events: none; font-weight: 800;
+    color: #fff; text-shadow: 0 2px 6px rgba(0,0,0,0.7); font-size: 1rem;
+    animation: dmgrise .7s ease-out forwards;
+  }
+  @keyframes dmgrise { from { opacity: 1; transform: translateY(0);} to { opacity: 0; transform: translateY(-52px);} }
+
+  /* ---- action buttons ---- */
+  .actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin: 14px 0 6px; }
   .btn {
-    display: inline-flex; align-items: center; gap: 9px;
-    padding: 14px 26px; border-radius: 14px; font-weight: 800; font-size: 1rem;
-    text-decoration: none; border: 1px solid transparent; cursor: pointer;
-    transition: transform .15s ease, box-shadow .15s ease, background .2s;
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    padding: 12px 18px; border-radius: 13px; font-weight: 800; font-size: .95rem;
+    border: 1px solid var(--panel-brd); cursor: pointer; min-height: 46px;
+    background: rgba(124,92,255,0.14); color: var(--ink);
+    transition: transform .12s, background .2s, opacity .2s;
+    font-family: var(--font);
   }
   .btn:hover { transform: translateY(-2px); }
-  .btn.primary { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; box-shadow: 0 12px 34px rgba(124,92,255,0.45); }
-  .btn.ghost { background: var(--panel); color: var(--ink); border-color: var(--panel-brd); }
+  .btn:active { transform: translateY(0) scale(.98); }
+  .btn.primary { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; border-color: transparent; box-shadow: 0 10px 26px rgba(124,92,255,0.4); }
+  .btn.small { padding: 8px 12px; font-size: .82rem; min-height: 38px; border-radius: 10px; }
+  .btn:disabled { opacity: .38; cursor: not-allowed; transform: none; box-shadow: none; }
+  .btn .cost { font-size: .78rem; opacity: .9; font-weight: 700; }
 
-  /* ---------- play demo ---------- */
-  .demo {
-    margin: 46px auto 10px; max-width: 640px;
-    background: var(--panel); border: 1px solid var(--panel-brd);
-    border-radius: 24px; box-shadow: var(--shadow); padding: 26px 24px 30px;
-    backdrop-filter: blur(6px);
-  }
-  .demo h2 { margin: 0 0 4px; font-size: 1.15rem; }
-  .demo .sub { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 18px; }
-  .stats { display: flex; justify-content: center; gap: 26px; margin-bottom: 16px; flex-wrap: wrap; }
-  .stat { text-align: center; }
-  .stat .n { font-size: 1.7rem; font-weight: 800; }
-  .stat .n.gold { color: var(--gold); }
-  .stat .n.mint { color: var(--mint); }
-  .stat .l { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); }
-
-  .rock-stage { position: relative; height: 190px; display: grid; place-items: center; user-select: none; }
-  #rock {
-    font-size: 96px; cursor: pointer; line-height: 1;
-    transition: transform .06s ease; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
-  }
-  #rock:active { transform: scale(0.9) rotate(-3deg); }
-  .float-coin {
-    position: absolute; font-weight: 800; color: var(--gold); pointer-events: none;
-    animation: rise 0.9s ease-out forwards; font-size: 1.1rem; text-shadow: 0 2px 6px rgba(0,0,0,0.6);
-  }
-  @keyframes rise { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-70px); } }
-
-  .demo-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
-  .mini {
-    padding: 11px 18px; border-radius: 12px; font-weight: 700; font-size: 0.92rem; cursor: pointer;
-    border: 1px solid var(--panel-brd); background: rgba(124,92,255,0.14); color: var(--ink);
-    transition: transform .12s, background .2s, opacity .2s;
-  }
-  .mini:hover { transform: translateY(-2px); background: rgba(124,92,255,0.26); }
-  .mini:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
-  .collection { margin-top: 18px; min-height: 44px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
-  .collection .creature {
-    font-size: 30px; animation: pop .4s ease; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
-    cursor: default;
-  }
-  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
-  .hint { color: var(--ink-soft); font-size: 0.78rem; margin-top: 10px; }
-
-  /* ---------- features ---------- */
-  .features { padding: 60px 0 20px; }
-  .sec-title { text-align: center; margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.6rem); }
-  .sec-sub { text-align: center; color: var(--ink-soft); margin: 0 auto 40px; max-width: 560px; }
-  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  /* ---- roster ---- */
+  .roster-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
+  .roster-head h2 { margin: 0; font-size: 1.15rem; }
+  .roster-head .cap { color: var(--ink-soft); font-size: .85rem; }
+  .roster { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
   .card {
-    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 20px;
-    padding: 26px 24px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
-    transition: transform .2s ease, border-color .2s;
+    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 16px;
+    padding: 14px; box-shadow: var(--shadow); position: relative; overflow: hidden;
   }
-  .card:hover { transform: translateY(-6px); border-color: rgba(140,120,255,0.5); }
-  .card .ico { font-size: 2.2rem; margin-bottom: 12px; }
-  .card h3 { margin: 0 0 8px; font-size: 1.2rem; }
-  .card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.55; }
+  .card.new { animation: cardpop .5s ease; }
+  @keyframes cardpop { 0% { transform: scale(.7); opacity: 0;} 60% { transform: scale(1.04);} 100% { transform: scale(1); opacity: 1;} }
+  .card .top { display: flex; align-items: center; gap: 12px; }
+  .card .avatar { font-size: 40px; line-height: 1; width: 54px; height: 54px; display: grid; place-items: center; border-radius: 14px; background: rgba(0,0,0,0.22); }
+  .card .who { flex: 1; min-width: 0; }
+  .card .name { font-weight: 800; font-size: 1rem; display: flex; align-items: center; gap: 6px; }
+  .card .stars { font-size: .78rem; letter-spacing: 1px; }
+  .rarity-badge {
+    display: inline-block; margin-top: 3px; padding: 2px 9px; border-radius: 999px;
+    font-size: .72rem; font-weight: 800; letter-spacing: .4px; border: 1px solid rgba(255,255,255,0.14);
+  }
+  .card .stats { display: flex; gap: 14px; margin: 12px 2px 10px; }
+  .card .stat .n { font-weight: 800; font-size: 1.02rem; }
+  .card .stat .l { font-size: .64rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); }
+  .card .stat .n.dps { color: var(--mint); }
+  .card .btns { display: flex; flex-wrap: wrap; gap: 6px; }
+  .card .btns .btn { flex: 1 1 auto; }
+  .btn.evolve { background: linear-gradient(120deg, #ffce54, #ff9e54); color: #2a1a00; border-color: transparent; }
+  .btn.sell { background: rgba(255,95,109,0.14); border-color: rgba(255,95,109,0.4); }
+  .maxed { font-size: .72rem; color: var(--gold); font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
 
-  /* ---------- loop ---------- */
-  .loop { padding: 56px 0; }
-  .loop-track { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; justify-content: center; }
-  .loop-step {
-    flex: 1 1 180px; max-width: 220px; text-align: center;
-    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 18px; padding: 22px 16px;
+  /* ---- hatch reveal overlay ---- */
+  .reveal {
+    position: fixed; inset: 0; z-index: 60; display: none; place-items: center;
+    background: rgba(5,4,18,0.72); backdrop-filter: blur(4px);
   }
-  .loop-step .num {
-    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;
-    font-weight: 800; background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff;
+  .reveal.show { display: grid; }
+  .reveal .card-reveal {
+    text-align: center; padding: 30px 34px; border-radius: 22px;
+    background: var(--panel-2); border: 1px solid var(--panel-brd); box-shadow: var(--shadow);
+    animation: revealpop .45s cubic-bezier(.2,1.3,.5,1);
+    max-width: 86vw;
   }
-  .loop-step h4 { margin: 0 0 6px; font-size: 1.05rem; }
-  .loop-step p { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
+  @keyframes revealpop { 0% { transform: scale(.5) rotate(-8deg); opacity: 0;} 100% { transform: scale(1) rotate(0); opacity: 1;} }
+  .reveal .emo { font-size: 84px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)); }
+  .reveal .rname { font-weight: 800; font-size: 1.4rem; margin-top: 10px; }
+  .reveal .rrar { margin-top: 8px; font-weight: 800; font-size: 1.05rem; }
+  .reveal .tap { margin-top: 16px; color: var(--ink-soft); font-size: .8rem; }
 
-  /* ---------- footer ---------- */
+  /* ---- toast ---- */
+  .toast {
+    position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
+    background: rgba(20,18,46,0.95); border: 1px solid var(--panel-brd); color: var(--ink);
+    padding: 11px 18px; border-radius: 12px; font-weight: 700; font-size: .9rem; z-index: 70;
+    opacity: 0; transition: opacity .25s, transform .25s; box-shadow: var(--shadow); pointer-events: none;
+    max-width: 88vw; text-align: center;
+  }
+  .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
   footer {
-    position: relative; z-index: 1;
-    border-top: 1px solid var(--panel-brd); margin-top: 40px; padding: 34px 0 46px; text-align: center;
-    color: var(--ink-soft); font-size: 0.9rem;
+    position: relative; z-index: 1; text-align: center;
+    color: var(--ink-soft); font-size: .85rem; padding: 26px 0 40px; margin-top: 26px;
+    border-top: 1px solid var(--panel-brd);
   }
-  footer .foot-orbs { font-size: 1.6rem; margin-bottom: 12px; letter-spacing: 6px; }
   footer a { color: var(--violet-2); text-decoration: none; }
   footer a:hover { text-decoration: underline; }
-  .disclaimer { margin-top: 14px; font-size: 0.76rem; opacity: 0.7; max-width: 560px; margin-left: auto; margin-right: auto; }
+  .disclaimer { margin-top: 10px; font-size: .74rem; opacity: .65; max-width: 560px; margin-left: auto; margin-right: auto; }
+
+  @media (max-width: 480px) {
+    #rock { font-size: 76px; }
+    .rock-stage { height: 150px; }
+    .res { min-width: 84px; padding: 7px 11px; }
+  }
 </style>
 </head>
 <body>
@@ -216,105 +280,70 @@
       </svg>
       Orbies
     </div>
-    <nav class="nav-links">
-      <a href="play/">Play</a>
-      <a href="#features">Features</a>
-      <a href="#loop">Game Loop</a>
-      <a href="https://github.com/NORS3AI/Orbies">GitHub</a>
-    </nav>
+    <div class="nav-right">
+      <a class="btn small" href="play/" title="Try the expanded build with garden, rings &amp; arena">🌌 Expanded ›</a>
+      <button class="btn small" id="reset" title="Clear saved progress">↺ Reset</button>
+    </div>
   </div>
 </header>
 
-<section class="hero">
+<section>
   <div class="wrap">
-    <span class="kicker">Idle · Gacha · Creature Collector</span>
-    <h1>Hatch. Idle. Conquer.</h1>
-    <p class="tag">Smash rocks, earn coins, and summon tiny creatures called <strong>Orbies</strong> that fight and idle for you — even while you're away.</p>
-    <div class="cta-row">
-      <a class="btn primary" href="play/">▶ Play Now</a>
-      <a class="btn ghost" href="#play">Try the Teaser</a>
+
+    <div class="resbar">
+      <div class="res gold"><span class="ico">🪙</span><div><div class="v" id="rGold">0</div><div class="k">Gold</div></div></div>
+      <div class="res treat"><span class="ico">🍬</span><div><div class="v" id="rTreats">0</div><div class="k">Treats</div></div></div>
+      <div class="res orb"><span class="ico">🔮</span><div><div class="v" id="rOrbs">0</div><div class="k">Orbs</div></div></div>
+      <div class="res hold"><span class="ico">🧺</span><div><div class="v" id="rHold">0/3</div><div class="k">Held</div></div></div>
     </div>
-  </div>
-</section>
 
-<section id="play">
-  <div class="wrap">
-    <div class="demo">
-      <h2>⛏️ Mining Bench</h2>
-      <div class="sub">Tap the rock to break it and collect gold. Save up, then summon an Orbie of your own.</div>
-
-      <div class="stats">
-        <div class="stat"><div class="n gold" id="coins">0</div><div class="l">Gold Coins</div></div>
-        <div class="stat"><div class="n mint" id="owned">0</div><div class="l">Orbies</div></div>
-        <div class="stat"><div class="n" id="depth">1</div><div class="l">Floor</div></div>
-      </div>
+    <div class="arena">
+      <div class="floor-tag">Floor <span id="floorNum">1</span></div>
+      <div class="dps-tag" id="teamDps">0 DPS</div>
 
       <div class="rock-stage">
-        <div id="rock" title="Smash me!" role="button" aria-label="Smash the rock">🪨</div>
+        <div id="rock" role="img" aria-label="The rock your Orbies are attacking">🪨</div>
       </div>
 
-      <div class="demo-actions">
-        <button class="mini" id="summon">✨ Summon Orbie · 50</button>
-        <button class="mini" id="delve">🏰 Descend Floor · 100</button>
-        <button class="mini" id="reset" title="Clear your saved progress">↺ Reset</button>
-      </div>
+      <div class="hpbar"><span id="hpFill"></span><div class="hptext" id="hpText">0 / 0</div></div>
 
-      <div class="collection" id="collection" aria-live="polite"></div>
-      <div class="hint">This is a bite-sized teaser. The full game — over 100 collectible Orbies, a garden, an arena, rings and more — is one click away.</div>
-      <div class="demo-actions" style="margin-top:14px;">
-        <a class="btn primary" href="play/">▶ Play the Full Game</a>
-      </div>
+      <div class="fighters" id="fighters"></div>
     </div>
+
+    <div class="actions">
+      <button class="btn primary" id="openOrb">🔮 Open Orb <span class="cost" id="openHint"></span></button>
+      <button class="btn" id="buyOrb">➕ Buy Orb <span class="cost" id="buyCost"></span></button>
+      <button class="btn" id="expandHold">🧺 Expand Hold <span class="cost" id="expandCost"></span></button>
+    </div>
+
+    <div class="roster-head">
+      <h2>Your Orbies</h2>
+      <span class="cap" id="rosterCap"></span>
+    </div>
+    <div class="roster" id="roster"></div>
+    <p class="empty-note" id="emptyNote" style="display:none;margin-top:8px;">
+      You have no Orbies yet — <strong>Open an Orb</strong> above to hatch your first creature!
+    </p>
+
   </div>
 </section>
 
-<section class="features" id="features">
-  <div class="wrap">
-    <h2 class="sec-title">A Whole World in Your Pocket</h2>
-    <p class="sec-sub">Orbies blends incremental idle progression with gacha collecting, farming, and competitive leagues.</p>
-    <div class="grid">
-      <div class="card">
-        <div class="ico">⛏️</div>
-        <h3>Mining &amp; Combat</h3>
-        <p>Smash rocks to collect gold coins, push deeper into dungeon floors, and clear boss gates for bigger rewards.</p>
-      </div>
-      <div class="card">
-        <div class="ico">✨</div>
-        <h3>Summon &amp; Upgrade</h3>
-        <p>Pull and level up over 100 unique Orbies, each with distinct flavor text and traits to discover.</p>
-      </div>
-      <div class="card">
-        <div class="ico">🌱</div>
-        <h3>Gardening &amp; Farming</h3>
-        <p>Grow crops in your garden to feed your creatures and fuel steady, satisfying progression.</p>
-      </div>
-      <div class="card">
-        <div class="ico">🏆</div>
-        <h3>Collections &amp; Leagues</h3>
-        <p>Compete in weekly leaderboards, equip rings, open totem-card packs, and melt duplicates into jewelry dust.</p>
-      </div>
-    </div>
+<div class="reveal" id="reveal">
+  <div class="card-reveal">
+    <div class="emo" id="revealEmo">🥚</div>
+    <div class="rname" id="revealName">???</div>
+    <div class="rrar" id="revealRar">???</div>
+    <div class="tap">tap to continue</div>
   </div>
-</section>
+</div>
 
-<section class="loop" id="loop">
-  <div class="wrap">
-    <h2 class="sec-title">The Core Loop</h2>
-    <p class="sec-sub">Simple to start, deep to master — the incremental gameplay that keeps you coming back.</p>
-    <div class="loop-track">
-      <div class="loop-step"><div class="num">1</div><h4>Break Rocks</h4><p>Tap and idle to mine gold from the depths.</p></div>
-      <div class="loop-step"><div class="num">2</div><h4>Summon Orbies</h4><p>Spend gold to hatch new creatures.</p></div>
-      <div class="loop-step"><div class="num">3</div><h4>Build Power</h4><p>Level up, equip rings, and farm crops.</p></div>
-      <div class="loop-step"><div class="num">4</div><h4>Climb the Arena</h4><p>Battle for weekly leaderboard glory.</p></div>
-    </div>
-  </div>
-</section>
+<div class="toast" id="toast"></div>
 
 <footer>
   <div class="wrap">
-    <div class="foot-orbs">🟣 🔵 🟢 🟡 🩷</div>
-    <div><strong>Orbies</strong> — an incremental idle &amp; gacha adventure.</div>
-    <div style="margin-top:8px;">
+    <div><strong>Orbies</strong> — hatch, battle, evolve.</div>
+    <div style="margin-top:6px;">
+      <a href="play/">🌌 Expanded build</a> ·
       <a href="https://github.com/NORS3AI/Orbies">View on GitHub</a> ·
       <a href="https://nors3ai.github.io/Orbies/">nors3ai.github.io/Orbies</a>
     </div>
@@ -326,116 +355,564 @@
 (function () {
   "use strict";
 
-  // ----- floating background orbs -----
-  var colors = ["#7c5cff", "#58c9ff", "#4ee0a0", "#ffce54", "#ff77c8", "#a98bff"];
+  /* ============================================================
+     iOS zoom lock — kill pinch-zoom and double-tap-to-zoom
+     ============================================================ */
+  ["gesturestart", "gesturechange", "gestureend"].forEach(function (ev) {
+    document.addEventListener(ev, function (e) { e.preventDefault(); }, { passive: false });
+  });
+  document.addEventListener("touchmove", function (e) {
+    if (e.touches && e.touches.length > 1) e.preventDefault(); // block pinch
+  }, { passive: false });
+  document.addEventListener("dblclick", function (e) { e.preventDefault(); }, { passive: false });
+  // Backup double-tap guard for old iOS (pre-touch-action support): swallow the
+  // zoom default on a fast second tap, but never on interactive controls so
+  // rapid button taps (e.g. fast leveling) always register.
+  var _lastTouchEnd = 0;
+  document.addEventListener("touchend", function (e) {
+    var now = Date.now();
+    if (now - _lastTouchEnd <= 320) {
+      var t = e.target;
+      var interactive = t && t.closest && t.closest("button, a, input, select, textarea");
+      if (!interactive) e.preventDefault();
+    }
+    _lastTouchEnd = now;
+  }, { passive: false });
+
+  /* ============================================================
+     Floating background orbs
+     ============================================================ */
+  var COLORS = ["#7c5cff", "#58c9ff", "#4ee0a0", "#ffce54", "#ff77c8", "#a98bff"];
   var field = document.getElementById("field");
-  for (var i = 0; i < 18; i++) {
+  for (var i = 0; i < 16; i++) {
     var o = document.createElement("div");
     o.className = "orb";
     var size = 20 + Math.floor(Math.random() * 90);
-    o.style.width = size + "px";
-    o.style.height = size + "px";
-    o.style.left = Math.random() * 100 + "vw";
-    o.style.top = Math.random() * 100 + "vh";
-    o.style.background = colors[Math.floor(Math.random() * colors.length)];
+    o.style.width = size + "px"; o.style.height = size + "px";
+    o.style.left = (Math.random() * 100) + "vw";
+    o.style.top = (Math.random() * 100) + "vh";
+    o.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
     o.style.animationDuration = (8 + Math.random() * 12).toFixed(1) + "s";
     o.style.animationDelay = (-Math.random() * 10).toFixed(1) + "s";
-    o.style.opacity = (0.12 + Math.random() * 0.28).toFixed(2);
+    o.style.opacity = (0.12 + Math.random() * 0.26).toFixed(2);
     field.appendChild(o);
   }
 
-  // ----- tiny idle-game teaser -----
-  var CREATURES = ["🐣","🐤","🦊","🐸","🐰","🐥","🐲","🦄","🐙","🐢","🦉","🐧","🐼","🐨","🦋"];
-  var SUMMON_COST = 50, DELVE_COST = 100;
+  /* ============================================================
+     Game data
+     ============================================================ */
+  // Rarities, lowest -> highest. Evolving lifts an Orbie +2 tiers per stage.
+  var RARITIES = [
+    "Trash", "Common", "Uncommon", "Magic", "Rare", "Epic", "Legendary",
+    "Esoteric", "Mythic", "Relic", "Untouched", "Phase-bound", "Light-sworn", "Void-born"
+  ];
+  var RARITY_COLORS = [
+    "#8b8b96", "#c3ccda", "#4ee0a0", "#58c9ff", "#4f7cff", "#a855f7", "#ffce54",
+    "#ff8a3d", "#ff5db1", "#ff4d4d", "#e7f0ff", "#7cf6ff", "#fff2a8", "#c07bff"
+  ];
+  // Roll weights for a freshly-hatched Orbie's BASE rarity (skewed low).
+  var RARITY_WEIGHTS = [30, 26, 18, 11, 6, 3.4, 2, 1.1, 0.6, 0.35, 0.18, 0.08, 0.03, 0.01];
 
-  var state = { coins: 0, owned: [], depth: 1 };
-  try {
-    var saved = localStorage.getItem("orbies-teaser");
-    if (saved) {
-      var p = JSON.parse(saved);
-      if (p && typeof p === "object") {
-        state.coins = p.coins | 0;
-        state.owned = Array.isArray(p.owned) ? p.owned.slice(0, 60) : [];
-        state.depth = p.depth | 0 || 1;
+  var TOP_RARITY = RARITIES.length - 1; // 13 = Void-born
+
+  // Species are cosmetic (name + emoji + small power multiplier). Any species
+  // can roll any rarity.
+  var SPECIES = [
+    { n: "Pebl", e: "🐣", p: 1.00 }, { n: "Chik", e: "🐤", p: 1.05 },
+    { n: "Foxo", e: "🦊", p: 1.12 }, { n: "Ribb", e: "🐸", p: 0.98 },
+    { n: "Hopp", e: "🐰", p: 1.02 }, { n: "Dust", e: "🐥", p: 0.95 },
+    { n: "Draak", e: "🐲", p: 1.25 }, { n: "Unil", e: "🦄", p: 1.20 },
+    { n: "Inko", e: "🐙", p: 1.08 }, { n: "Shel", e: "🐢", p: 0.90 },
+    { n: "Whoo", e: "🦉", p: 1.06 }, { n: "Pengi", e: "🐧", p: 1.00 },
+    { n: "Bamb", e: "🐼", p: 1.10 }, { n: "Snug", e: "🐨", p: 0.96 },
+    { n: "Flit", e: "🦋", p: 1.04 }, { n: "Buzz", e: "🐝", p: 1.03 },
+    { n: "Ladi", e: "🐞", p: 0.97 }, { n: "Prik", e: "🦔", p: 1.07 },
+    { n: "Batz", e: "🦇", p: 1.14 }, { n: "Geck", e: "🦎", p: 1.09 },
+    { n: "Puffo", e: "🐡", p: 1.01 }, { n: "Fango", e: "🦈", p: 1.18 },
+    { n: "Rexy", e: "🦖", p: 1.30 }, { n: "Wisp", e: "👻", p: 1.15 }
+  ];
+
+  var MAX_LEVEL = 50;
+  var MAX_ATTACKERS = 8; // up to 8 Orbies strike the rock at once
+
+  /* ---- derived stat formulas (all tunable) ---- */
+  function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
+  function hitDamage(ob) {
+    var r = rarityOf(ob);
+    return Math.max(1, Math.round((1 + r) * (1 + (ob.level - 1) * 0.4) * ob.p));
+  }
+  function attackInterval(ob) { // ms between this Orbie's strikes
+    var r = rarityOf(ob);
+    return Math.max(450, 1100 - r * 45);
+  }
+  function orbieDps(ob) { return hitDamage(ob) / (attackInterval(ob) / 1000); }
+
+  function rockMaxHp(f) { return Math.round(8 * Math.pow(1.2, f - 1)); }
+  function rockReward(f) { return Math.round(3 * Math.pow(1.18, f - 1)) + 2; }
+  function buyOrbCost() { return Math.round(15 * Math.pow(1.13, state.orbsBought)); }
+  function expandCost() { return Math.round(150 * Math.pow(2, state.holdCap - 3)); }
+  function levelUpCost(ob) { var r = rarityOf(ob); return Math.round((2 + ob.level * 1.6) * (1 + r * 0.25)); }
+  function sellValue(ob) { var r = rarityOf(ob); return Math.max(1, Math.round(Math.pow(1 + r, 1.4) * (2 + ob.level * 0.5))); }
+
+  function canEvolve(ob) {
+    if (ob.stage === 0 && ob.level >= 20) return true;
+    if (ob.stage === 1 && ob.level >= 50) return true;
+    return false;
+  }
+  function evolveLevel(ob) { return ob.stage === 0 ? 20 : 50; }
+
+  function weightedRarity() {
+    var total = 0, k;
+    for (k = 0; k < RARITY_WEIGHTS.length; k++) total += RARITY_WEIGHTS[k];
+    var roll = Math.random() * total;
+    for (k = 0; k < RARITY_WEIGHTS.length; k++) {
+      roll -= RARITY_WEIGHTS[k];
+      if (roll <= 0) return k;
+    }
+    return 0;
+  }
+
+  /* ============================================================
+     State + persistence
+     ============================================================ */
+  var SAVE_KEY = "orbies-save-v2";
+  var state, nextId, timers;
+
+  function freshState() {
+    return {
+      gold: 0, treats: 0, orbs: 5, floor: 1, holdCap: 3, orbsBought: 0,
+      rockHp: rockMaxHp(1), roster: [], nid: 1
+    };
+  }
+
+  function load() {
+    state = freshState();
+    try {
+      var raw = localStorage.getItem(SAVE_KEY);
+      if (raw) {
+        var p = JSON.parse(raw);
+        if (p && typeof p === "object") {
+          state.gold = Math.max(0, p.gold | 0);
+          state.treats = Math.max(0, p.treats | 0);
+          state.orbs = Math.max(0, p.orbs | 0);
+          state.floor = Math.max(1, p.floor | 0);
+          state.holdCap = Math.min(MAX_ATTACKERS, Math.max(3, p.holdCap | 0));
+          state.orbsBought = Math.max(0, p.orbsBought | 0);
+          state.nid = Math.max(1, p.nid | 0);
+          state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
+          var mh = rockMaxHp(state.floor);
+          state.rockHp = (typeof p.rockHp === "number" && p.rockHp > 0) ? Math.min(p.rockHp, mh) : mh;
+        }
+      }
+    } catch (e) { /* storage blocked — run fresh */ }
+    nextId = state.nid;
+    timers = {};
+  }
+
+  function sanitizeOrbie(ob) {
+    if (!ob || typeof ob !== "object") return false;
+    if (typeof ob.si !== "number" || ob.si < 0 || ob.si >= SPECIES.length) return false;
+    ob.base = Math.min(TOP_RARITY, Math.max(0, ob.base | 0));
+    ob.level = Math.min(MAX_LEVEL, Math.max(1, ob.level | 0));
+    ob.stage = Math.min(2, Math.max(0, ob.stage | 0));
+    ob.p = SPECIES[ob.si].p;
+    ob.n = SPECIES[ob.si].n;
+    ob.e = SPECIES[ob.si].e;
+    if (typeof ob.id !== "number") ob.id = nextId++;
+    return true;
+  }
+
+  var saveTimer = null;
+  function saveSoon() {
+    if (saveTimer) return;
+    saveTimer = setTimeout(function () { saveTimer = null; save(); }, 400);
+  }
+  function save() {
+    state.nid = nextId;
+    try { localStorage.setItem(SAVE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+
+  /* ============================================================
+     DOM refs
+     ============================================================ */
+  var el = {
+    gold: document.getElementById("rGold"),
+    treats: document.getElementById("rTreats"),
+    orbs: document.getElementById("rOrbs"),
+    hold: document.getElementById("rHold"),
+    floor: document.getElementById("floorNum"),
+    teamDps: document.getElementById("teamDps"),
+    rock: document.getElementById("rock"),
+    hpFill: document.getElementById("hpFill"),
+    hpText: document.getElementById("hpText"),
+    fighters: document.getElementById("fighters"),
+    roster: document.getElementById("roster"),
+    rosterCap: document.getElementById("rosterCap"),
+    emptyNote: document.getElementById("emptyNote"),
+    openOrb: document.getElementById("openOrb"),
+    openHint: document.getElementById("openHint"),
+    buyOrb: document.getElementById("buyOrb"),
+    buyCost: document.getElementById("buyCost"),
+    expandHold: document.getElementById("expandHold"),
+    expandCost: document.getElementById("expandCost"),
+    reveal: document.getElementById("reveal"),
+    revealEmo: document.getElementById("revealEmo"),
+    revealName: document.getElementById("revealName"),
+    revealRar: document.getElementById("revealRar"),
+    toast: document.getElementById("toast")
+  };
+
+  /* ============================================================
+     Toast + reveal
+     ============================================================ */
+  var toastTimer = null;
+  function toast(msg) {
+    el.toast.textContent = msg;
+    el.toast.classList.add("show");
+    if (toastTimer) clearTimeout(toastTimer);
+    toastTimer = setTimeout(function () { el.toast.classList.remove("show"); }, 1900);
+  }
+
+  function showReveal(ob) {
+    var r = rarityOf(ob);
+    el.revealEmo.textContent = ob.e;
+    el.revealName.textContent = ob.n;
+    el.revealRar.textContent = RARITIES[r];
+    el.revealRar.style.color = RARITY_COLORS[r];
+    el.reveal.classList.add("show");
+  }
+  el.reveal.addEventListener("click", function () { el.reveal.classList.remove("show"); });
+
+  /* ============================================================
+     Fighters (arena) — rebuilt only when the attacker set changes
+     ============================================================ */
+  var fighterEls = {};      // id -> element
+  var fighterSig = "";      // signature of current attacker ids
+
+  function activeAttackers() { return state.roster.slice(0, MAX_ATTACKERS); }
+
+  function syncFighters() {
+    var atk = activeAttackers();
+    var sig = atk.map(function (o) { return o.id + ":" + o.e; }).join("|");
+    if (sig === fighterSig) return;
+    fighterSig = sig;
+    fighterEls = {};
+    el.fighters.innerHTML = "";
+    if (atk.length === 0) {
+      var note = document.createElement("div");
+      note.className = "empty-note";
+      note.textContent = "No Orbies deployed — hatch one to start the assault!";
+      el.fighters.appendChild(note);
+      return;
+    }
+    atk.forEach(function (ob) {
+      var f = document.createElement("div");
+      f.className = "fighter";
+      f.textContent = ob.e;
+      el.fighters.appendChild(f);
+      fighterEls[ob.id] = f;
+    });
+  }
+
+  function triggerHit(id, dmg) {
+    var f = fighterEls[id];
+    if (f) {
+      f.classList.remove("hit"); void f.offsetWidth; f.classList.add("hit");
+    }
+    // floating damage number over the rock
+    var d = document.createElement("div");
+    d.className = "dmg-float";
+    d.textContent = "-" + dmg;
+    d.style.left = (46 + Math.random() * 8) + "%";
+    d.style.top = "34%";
+    d.style.color = "#fff";
+    el.rock.parentNode.appendChild(d);
+    setTimeout(function () { d.remove(); }, 700);
+
+    el.rock.classList.remove("shake"); void el.rock.offsetWidth; el.rock.classList.add("shake");
+  }
+
+  /* ============================================================
+     Combat loop
+     ============================================================ */
+  function breakRock() {
+    var reward = rockReward(state.floor);
+    state.gold += reward;
+    state.floor += 1;
+    state.rockHp = rockMaxHp(state.floor);
+    el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
+    renderStats();
+    saveSoon();
+  }
+
+  function tick() {
+    var now = Date.now();
+    var atk = activeAttackers();
+    for (var i = 0; i < atk.length; i++) {
+      var ob = atk[i];
+      if (timers[ob.id] == null) timers[ob.id] = now + i * 150; // stagger => take turns
+      if (now >= timers[ob.id]) {
+        var dmg = hitDamage(ob);
+        state.rockHp -= dmg;
+        triggerHit(ob.id, dmg);
+        timers[ob.id] = now + attackInterval(ob);
+        if (state.rockHp <= 0) breakRock();
       }
     }
-  } catch (e) { /* storage blocked — run fresh */ }
-
-  var elCoins = document.getElementById("coins");
-  var elOwned = document.getElementById("owned");
-  var elDepth = document.getElementById("depth");
-  var elCollection = document.getElementById("collection");
-  var rock = document.getElementById("rock");
-  var btnSummon = document.getElementById("summon");
-  var btnDelve = document.getElementById("delve");
-  var btnReset = document.getElementById("reset");
-
-  function save() {
-    try { localStorage.setItem("orbies-teaser", JSON.stringify(state)); } catch (e) {}
+    updateRockBar();
   }
 
-  function render() {
-    elCoins.textContent = state.coins.toLocaleString();
-    elOwned.textContent = state.owned.length;
-    elDepth.textContent = state.depth;
-    btnSummon.disabled = state.coins < SUMMON_COST;
-    btnDelve.disabled = state.coins < DELVE_COST;
-    elCollection.innerHTML = "";
-    for (var i = 0; i < state.owned.length; i++) {
-      var c = document.createElement("span");
-      c.className = "creature";
-      c.textContent = state.owned[i];
-      elCollection.appendChild(c);
+  function updateRockBar() {
+    var mh = rockMaxHp(state.floor);
+    var frac = Math.max(0, Math.min(1, state.rockHp / mh));
+    el.hpFill.style.transform = "scaleX(" + frac + ")";
+    el.hpText.textContent = Math.max(0, Math.ceil(state.rockHp)) + " / " + mh;
+  }
+
+  /* ============================================================
+     Rendering
+     ============================================================ */
+  function teamDps() {
+    return activeAttackers().reduce(function (s, o) { return s + orbieDps(o); }, 0);
+  }
+
+  function renderStats() {
+    el.gold.textContent = fmt(state.gold);
+    el.treats.textContent = fmt(state.treats);
+    el.orbs.textContent = fmt(state.orbs);
+    el.hold.textContent = state.roster.length + "/" + state.holdCap;
+    el.floor.textContent = state.floor;
+    el.teamDps.textContent = fmt(Math.round(teamDps() * 10) / 10) + " DPS";
+
+    // action buttons
+    var full = state.roster.length >= state.holdCap;
+    el.openOrb.disabled = state.orbs <= 0 || full;
+    el.openHint.textContent = state.orbs > 0 ? "(" + state.orbs + " left)" : "(none)";
+    if (full && state.orbs > 0) el.openHint.textContent = "(hold full)";
+
+    var bc = buyOrbCost();
+    el.buyCost.textContent = "🪙" + fmt(bc);
+    el.buyOrb.disabled = state.gold < bc;
+
+    if (state.holdCap >= MAX_ATTACKERS) {
+      el.expandCost.textContent = "MAX";
+      el.expandHold.disabled = true;
+    } else {
+      var ec = expandCost();
+      el.expandCost.textContent = "🪙" + fmt(ec);
+      el.expandHold.disabled = state.gold < ec;
     }
+
+    el.rosterCap.textContent = "(" + state.roster.length + " / " + state.holdCap + " held · up to " + MAX_ATTACKERS + " fight at once)";
   }
 
-  function floatCoin(amount) {
-    var f = document.createElement("div");
-    f.className = "float-coin";
-    f.textContent = "+" + amount;
-    f.style.left = (40 + Math.random() * 20) + "%";
-    f.style.top = "40%";
-    rock.parentNode.appendChild(f);
-    setTimeout(function () { f.remove(); }, 900);
+  function stars(stage) {
+    if (stage === 0) return "";
+    return stage === 1 ? "✦" : "✦✦";
   }
 
-  function mine() {
-    var gain = state.depth; // deeper floors pay more
-    state.coins += gain;
-    floatCoin(gain);
-    render();
-    save();
+  function renderRoster() {
+    el.roster.innerHTML = "";
+    el.emptyNote.style.display = state.roster.length === 0 ? "block" : "none";
+
+    state.roster.forEach(function (ob) {
+      var r = rarityOf(ob);
+      var color = RARITY_COLORS[r];
+      var card = document.createElement("div");
+      card.className = "card" + (ob._new ? " new" : "");
+      ob._new = false;
+
+      var evo = canEvolve(ob);
+      var lvCost = levelUpCost(ob);
+      var sell = sellValue(ob);
+      var maxed = ob.level >= MAX_LEVEL && ob.stage >= 2;
+
+      card.innerHTML =
+        '<div class="top">' +
+          '<div class="avatar" style="box-shadow:0 0 0 2px ' + color + '55, 0 0 18px ' + color + '55;">' + ob.e + '</div>' +
+          '<div class="who">' +
+            '<div class="name">' + ob.n + ' <span class="stars" style="color:' + color + '">' + stars(ob.stage) + '</span></div>' +
+            '<span class="rarity-badge" style="color:' + color + ';background:' + color + '22;border-color:' + color + '55;">' + RARITIES[r] + '</span>' +
+          '</div>' +
+        '</div>' +
+        '<div class="stats">' +
+          '<div class="stat"><div class="n">Lv ' + ob.level + '</div><div class="l">Level</div></div>' +
+          '<div class="stat"><div class="n dps">' + (Math.round(orbieDps(ob) * 10) / 10) + '</div><div class="l">DPS</div></div>' +
+          '<div class="stat"><div class="n">' + hitDamage(ob) + '</div><div class="l">Hit</div></div>' +
+        '</div>' +
+        '<div class="btns"></div>';
+
+      var btns = card.querySelector(".btns");
+
+      // Level up
+      var lvBtn = document.createElement("button");
+      lvBtn.className = "btn small";
+      if (ob.level >= MAX_LEVEL) {
+        lvBtn.textContent = "Lv MAX";
+        lvBtn.disabled = true;
+      } else {
+        lvBtn.innerHTML = "⬆ Lv <span class=\"cost\">🍬" + fmt(lvCost) + "</span>";
+        lvBtn.disabled = state.treats < lvCost;
+        lvBtn.addEventListener("click", function () { doLevelUp(ob); });
+      }
+      btns.appendChild(lvBtn);
+
+      // Evolve (unlocks at Lv20, then Lv50 for final form)
+      if (ob.stage < 2) {
+        var evBtn = document.createElement("button");
+        evBtn.className = "btn small evolve";
+        if (evo) {
+          evBtn.textContent = ob.stage === 0 ? "✨ Evolve" : "🌟 Final Form";
+          evBtn.addEventListener("click", function () { doEvolve(ob); });
+        } else {
+          evBtn.textContent = "🔒 Evo Lv" + evolveLevel(ob);
+          evBtn.disabled = true;
+        }
+        btns.appendChild(evBtn);
+      } else {
+        var fin = document.createElement("span");
+        fin.className = "maxed";
+        fin.textContent = "★ Final Form";
+        btns.appendChild(fin);
+      }
+
+      // Sell
+      var sellBtn = document.createElement("button");
+      sellBtn.className = "btn small sell";
+      sellBtn.innerHTML = "💰 Sell <span class=\"cost\">🍬" + fmt(sell) + "</span>";
+      sellBtn.addEventListener("click", function () { doSell(ob); });
+      btns.appendChild(sellBtn);
+
+      el.roster.appendChild(card);
+    });
   }
 
-  rock.addEventListener("click", mine);
-  rock.addEventListener("keydown", function (e) {
-    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mine(); }
-  });
-  rock.tabIndex = 0;
+  function renderAll() {
+    renderStats();
+    renderRoster();
+    syncFighters();
+    updateRockBar();
+  }
 
-  btnSummon.addEventListener("click", function () {
-    if (state.coins < SUMMON_COST) return;
-    state.coins -= SUMMON_COST;
-    state.owned.push(CREATURES[Math.floor(Math.random() * CREATURES.length)]);
-    render();
-    save();
-  });
+  function fmt(n) {
+    n = Math.round(n);
+    if (n < 1000) return "" + n;
+    var units = [["B", 1e9], ["M", 1e6], ["K", 1e3]];
+    for (var u = 0; u < units.length; u++) {
+      if (n >= units[u][1]) {
+        return (n / units[u][1]).toFixed(2).replace(/\.?0+$/, "") + units[u][0];
+      }
+    }
+    return "" + n;
+  }
 
-  btnDelve.addEventListener("click", function () {
-    if (state.coins < DELVE_COST) return;
-    state.coins -= DELVE_COST;
-    state.depth += 1;
-    render();
-    save();
-  });
+  /* ============================================================
+     Actions
+     ============================================================ */
+  function makeOrbie() {
+    var si = Math.floor(Math.random() * SPECIES.length);
+    var sp = SPECIES[si];
+    return {
+      id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p,
+      base: weightedRarity(), level: 1, stage: 0, _new: true
+    };
+  }
 
-  btnReset.addEventListener("click", function () {
-    state = { coins: 0, owned: [], depth: 1 };
-    render();
-    save();
-  });
+  function doOpenOrb() {
+    if (state.orbs <= 0) { toast("No orbs to open — buy one with gold."); return; }
+    if (state.roster.length >= state.holdCap) {
+      toast("Hold is full (" + state.holdCap + "). Sell an Orbie or expand your hold.");
+      return;
+    }
+    state.orbs -= 1;
+    var ob = makeOrbie();
+    state.roster.push(ob);
+    timers[ob.id] = Date.now();
+    showReveal(ob);
+    renderAll();
+    saveSoon();
+  }
 
-  render();
+  function doBuyOrb() {
+    var cost = buyOrbCost();
+    if (state.gold < cost) { toast("Not enough gold."); return; }
+    state.gold -= cost;
+    state.orbs += 1;
+    state.orbsBought += 1;
+    renderStats();
+    toast("Bought an orb! You now hold " + state.orbs + ".");
+    saveSoon();
+  }
+
+  function doExpandHold() {
+    if (state.holdCap >= MAX_ATTACKERS) { toast("Hold is already at the max of " + MAX_ATTACKERS + "."); return; }
+    var cost = expandCost();
+    if (state.gold < cost) { toast("Not enough gold."); return; }
+    state.gold -= cost;
+    state.holdCap += 1;
+    renderAll();
+    toast("Hold expanded to " + state.holdCap + " Orbies!");
+    saveSoon();
+  }
+
+  function doLevelUp(ob) {
+    if (ob.level >= MAX_LEVEL) return;
+    var cost = levelUpCost(ob);
+    if (state.treats < cost) { toast("Not enough treats to level up."); return; }
+    state.treats -= cost;
+    ob.level += 1;
+    renderAll();
+    saveSoon();
+  }
+
+  function doEvolve(ob) {
+    if (!canEvolve(ob)) return;
+    var beforeName = RARITIES[rarityOf(ob)];
+    ob.stage += 1;
+    ob._new = true; // pop animation
+    var afterName = RARITIES[rarityOf(ob)];
+    renderAll();
+    saveSoon();
+    toast(ob.n + " evolved: " + beforeName + " → " + afterName + "!");
+  }
+
+  function doSell(ob) {
+    var idx = state.roster.indexOf(ob);
+    if (idx < 0) return;
+    var gain = sellValue(ob);
+    state.treats += gain;
+    state.roster.splice(idx, 1);
+    delete timers[ob.id];
+    renderAll();
+    toast("Sold " + ob.n + " for 🍬" + gain + " treats.");
+    saveSoon();
+  }
+
+  function doReset() {
+    if (!confirm("Reset all progress? This clears your Orbies, gold, and treats.")) return;
+    try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
+    load();
+    renderAll();
+    toast("Progress reset. Open your 5 starter orbs!");
+  }
+
+  /* ============================================================
+     Wire up + boot
+     ============================================================ */
+  el.openOrb.addEventListener("click", doOpenOrb);
+  el.buyOrb.addEventListener("click", doBuyOrb);
+  el.expandHold.addEventListener("click", doExpandHold);
+  document.getElementById("reset").addEventListener("click", doReset);
+
+  load();
+  renderAll();
+  setInterval(tick, 60);
+  setInterval(save, 5000);
+  window.addEventListener("beforeunload", save);
+
+  if (state.roster.length === 0) {
+    setTimeout(function () { toast("Welcome! Open your 5 starter orbs to hatch your first Orbies."); }, 500);
+  }
 })();
 </script>
 </body>
