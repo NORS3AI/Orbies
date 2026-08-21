@@ -309,7 +309,7 @@
   .arena-flags .flag-max { color: var(--ink-soft); font-weight: 700; }
   .arena-flags .sub { color: var(--ink-soft); font-size: .68rem; font-weight: 600; margin-left: 6px; }
 
-  .board { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+  .board { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; position: relative; max-height: 58vh; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .lbrow {
     display: flex; align-items: center; gap: 10px; padding: 8px 12px;
     background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 12px;
@@ -885,8 +885,9 @@
   var ARENA_METALS = ["Bronze", "Copper", "Iron", "Steel", "Silver", "Mythril", "Gold", "Platinum", "Obsidian", "Ruby", "Sapphire", "Emerald", "Topaz", "Garnet", "Diamond"];
   var ARENA_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
   var ARENA_MAX_TIER = ARENA_METALS.length * ARENA_ROMAN.length - 1; // 149 (Diamond X)
-  var ARENA_POINTS_PER_TIER = 120;     // arena points needed to climb one rank tier
-  var ARENA_BOARD_SIZE = 100;          // leaderboard positions per tier (incl. you)
+  var ARENA_POINTS_PER_TIER = 120;     // arena points to advance one metal-tier badge
+  var ARENA_BOARD_SIZE = 100;          // rows on the (single, continuous) leaderboard, incl. you
+  var ARENA_MAX_POINTS = (ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER; // 18000 — the top of the ladder
   var ARENA_FLAG_MS = 2 * 60 * 1000;   // 1 flag every 2 minutes
   var ARENA_MAX_FLAGS = 5;
   var ARENA_RESHUFFLE_MS = 2 * 3600 * 1000; // NPC ladder reshuffles every 2h
@@ -2196,33 +2197,32 @@
     return { dps: dps, hp: hp };
   }
 
-  // One NPC leaderboard entry at position k (0 = strongest) within tier T.
-  function genArenaNpc(T, seed, k) {
-    var frac = k / (ARENA_BOARD_SIZE - 2);                 // 0..1 across 99 npcs
-    var band = ARENA_POINTS_PER_TIER - 2;                  // top npc sits just below the next tier
-    var jitter = Math.round((hashRand(seed + k * 13, T + 1) - 0.5) * 4);
-    var local = clamp(Math.round(band * Math.pow(1 - frac, 1.6)) + jitter, 0, band);
-    var pts = T * ARENA_POINTS_PER_TIER + local;
-    var pw = arenaNpcPower(pts, seed, k);
+  // A single CONTINUOUS ladder: one 100-row board spanning the whole game
+  // (from a few points up to the top). You climb it monotonically — every win
+  // moves you UP toward #1 and never resets you back down a tier.  NPC POINTS
+  // are fixed (independent of the 2h reshuffle), so your rank only moves when
+  // YOU do; the reshuffle only refreshes their names/faces.
+  function npcBoardPoints(k) {
+    // k = 0 (strongest, #1) .. 98 (weakest). Bottom-heavy so early climbing has
+    // plenty of beatable rungs, the top a few very strong ones.
+    var frac = k / (ARENA_BOARD_SIZE - 2);
+    var jitter = Math.round((hashRand(k * 13 + 1, 7) - 0.5) * 6);
+    return clamp(Math.round((ARENA_MAX_POINTS - 1) * Math.pow(1 - frac, 1.8)) + jitter, 1, ARENA_MAX_POINTS - 1);
+  }
+  function genArenaNpc(seed, k) {
+    var pts = npcBoardPoints(k), pw = arenaNpcPower(pts, 0, k);
     return { you: false, name: arenaHandle(seed, k), emoji: arenaEmoji(seed, k), points: pts, dps: pw.dps, hp: pw.hp };
   }
 
-  // The full 100-slot leaderboard for the player's current tier, you included.
+  // The whole leaderboard, you slotted in by points (higher points = higher rank).
   function arenaBoard() {
-    var T = playerTier(), seed = arenaSeed() * 977 + T * 31, list = [];
-    for (var k = 0; k < ARENA_BOARD_SIZE - 1; k++) list.push(genArenaNpc(T, seed, k));
+    var seed = arenaSeed(), list = [];
+    for (var k = 0; k < ARENA_BOARD_SIZE - 1; k++) list.push(genArenaNpc(seed, k));
     list.push({ you: true, name: state.arena.name, emoji: playerEmoji(), points: state.arena.points, dps: Math.round(teamDps()), hp: teamHp() });
     list.sort(function (a, b) { if (b.points !== a.points) return b.points - a.points; if (a.you) return 1; if (b.you) return -1; return b.dps - a.dps; });
     return list;
   }
   function boardRankOf(board) { for (var i = 0; i < board.length; i++) if (board[i].you) return i + 1; return board.length; }
-
-  // The champion you face once you top your tier (worth entry into the next).
-  function championNpc() {
-    var T = playerTier(), g = (T + 1) * ARENA_POINTS_PER_TIER - 1, seed = arenaSeed() * 977 + T * 31 + 999;
-    var pw = arenaNpcPower(g, seed, 50);
-    return { you: false, name: "Champion of " + rankName(T), emoji: "👑", points: g, dps: pw.dps, hp: pw.hp };
-  }
 
   // Split an NPC's totals into an attack line of 3–8 orbies for the fight screen.
   function buildNpcTeam(npc, seed) {
@@ -2271,36 +2271,27 @@
     if (activeAttackers().length === 0) { toast("Hatch some Orbies before you challenge."); return; }
     if (a.flags <= 0) { toast("Out of challenge flags — 1 returns every 2 min."); return; }
     var board = arenaBoard(), rank = boardRankOf(board);
-    var champ = rank <= 1;
-    var target = champ ? championNpc() : board[rank - 2];   // the slot directly above you
+    if (rank <= 1) { toast("🏆 You're #1 — champion of the arena!"); return; }
+    var target = board[rank - 2];   // the rival directly ABOVE you — you always fight up
     a.flags--;
-    var seed = arenaSeed() * 977 + playerTier() * 31 + rank;
+    var seed = arenaSeed() * 977 + rank;
     var youTeam = buildYouTeam(), npcTeam = buildNpcTeam(target, seed);
     var sim = simFight(youTeam, npcTeam);
     var gained = 0;
     if (sim.win) {
       a.wins++;
-      var beforeTier = playerTier(), beforePts = a.points;
-      // The bottom (entry) of the next tier — topping your tier steps here, the
-      // "next rung": e.g. winning at the top of Bronze I lands you at the very
-      // end of Bronze II, not deep inside it.
-      var nextRung = (beforeTier + 1) * ARENA_POINTS_PER_TIER;
-      var raw;
-      if (champ) {
-        raw = nextRung;                       // you're #1 — step onto the next rung
-      } else {
-        // Dominance-based leap: crush a rival (whole team survives) and you rocket
-        // up the ranks; scrape by and you climb just past them.
-        var dom = sim.youAlive / Math.max(1, youTeam.length);
-        var leap = dom >= 0.999 ? Math.round(a.points * 0.18 + 25)
-                 : dom >= 0.6 ? 3 : 1;
-        raw = a.points + (target.points - a.points) + leap;
-      }
-      // A single win climbs within your tier, or at most steps onto the entry of
-      // the next tier — never overshooting deeper than that next rung.
-      a.points = clamp(Math.min(raw, nextRung), 0, (ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER);
+      var beforeTier = playerTier(), beforePts = a.points, beforeRank = rank;
+      // Win = climb UP the ladder by whole rungs: 1 for a scrape, more for a
+      // decisive win (crush them, whole team standing, and you vault several
+      // rungs). You always land just above a rival — so your rank only ever
+      // improves and never resets down a tier.
+      var dom = sim.youAlive / Math.max(1, youTeam.length);
+      var steps = dom >= 0.999 ? 8 : dom >= 0.6 ? 3 : 1;
+      var landIdx = Math.max(0, (rank - 1) - steps);   // the rung to land just above
+      a.points = clamp(board[landIdx].points + 1, a.points + 1, ARENA_MAX_POINTS);
       gained = a.points - beforePts;
-      a.log.unshift("🏆 Beat " + target.name + " · +" + gained + " pts");
+      var climbed = beforeRank - boardRankOf(arenaBoard());
+      a.log.unshift("🏆 Beat " + target.name + " · ▲" + Math.max(1, climbed) + " rank" + (climbed === 1 ? "" : "s"));
       if (playerTier() > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(playerTier()) + "!");
     } else {
       a.losses++;
@@ -2381,26 +2372,27 @@
     if (fightTimer) { clearTimeout(fightTimer); fightTimer = null; }
     fightPlaying = false; fightState = null;
     el.fightScreen.classList.remove("show");
-    renderArena();
+    renderArena(true);   // recenter the board on your new position
   }
   function toggleFightSpeed() { fightSpeed = fightSpeed === 1 ? 2 : 1; el.fightSpeed.textContent = fightSpeed === 2 ? "▶ 1×" : "▶▶ 2×"; }
 
-  function renderArena() {
+  function renderArena(focusMe) {
     var a = state.arena;
     regenFlags();
     var s = arenaSeed();
     if (a.seed !== s) { a.seed = s; if (a._greeted) toast("🔀 The arena ladder reshuffled — new challengers!"); a._greeted = true; }
 
     var board = arenaBoard(), rank = boardRankOf(board);
-    el.arenaRankLbl.textContent = rankName(playerTier());
+    el.arenaRankLbl.textContent = rankName(playerTier()) + " · #" + rank;
     el.arenaPoints.textContent = fmt(a.points);
     el.arenaFlags.textContent = String(a.flags);
     if (a.flags >= ARENA_MAX_FLAGS) el.arenaFlagTimer.textContent = "full";
     else { var left = Math.max(0, ARENA_FLAG_MS - (Date.now() - a.flagAt)); el.arenaFlagTimer.textContent = "+1 in " + Math.ceil(left / 1000) + "s"; }
 
+    var prevScroll = el.npcList.scrollTop || 0;
     el.npcList.innerHTML = board.map(function (row, i) {
       var r = i + 1, top = r <= 3 ? " top" + r : "";
-      return '<div class="lbrow' + top + (row.you ? " me" : "") + '">' +
+      return '<div class="lbrow' + top + (row.you ? " me" : "") + '"' + (row.you ? ' id="lbMe"' : '') + '>' +
         '<div class="lbrank">#' + r + '</div>' +
         '<div class="lbav">' + row.emoji + '</div>' +
         '<div class="lbmid"><div class="lbname">' + row.name + (row.you ? ' <span class="lbyou">(you)</span>' : '') + '</div>' +
@@ -2408,15 +2400,27 @@
         '<div class="lbpts"><span class="pt-ico">🏆</span>' + fmt(row.points) + '</div>' +
         '</div>';
     }).join("");
+    el.npcList.scrollTop = prevScroll;   // keep the player's manual scroll across periodic re-renders
 
-    var canFight = a.flags > 0 && activeAttackers().length > 0;
+    var top1 = rank <= 1;
+    var canFight = a.flags > 0 && activeAttackers().length > 0 && !top1;
     el.challengeBtn.disabled = !canFight;
-    var target = rank <= 1 ? championNpc() : board[rank - 2];
-    var diff = activeAttackers().length ? difficultyVs(target) : "";
-    el.challengeBtn.className = "btn primary big" + (diff ? " diff-" + diff : "");
-    var diffLbl = diff === "green" ? " · easy" : diff === "yellow" ? " · fair" : diff === "red" ? " · deadly" : "";
-    el.challengeBtn.innerHTML = (rank <= 1 ? "CHALLENGE CHAMPION" : "CHALLENGE #" + (rank - 1)) + diffLbl + ' <span class="cta-flag">🎫 1</span>';
+    if (top1) {
+      el.challengeBtn.className = "btn primary big";
+      el.challengeBtn.innerHTML = "🏆 Arena Champion — you're #1";
+    } else {
+      var target = board[rank - 2];   // always the rival directly above — fight up
+      var diff = activeAttackers().length ? difficultyVs(target) : "";
+      el.challengeBtn.className = "btn primary big" + (diff ? " diff-" + diff : "");
+      var diffLbl = diff === "green" ? " · easy" : diff === "yellow" ? " · fair" : diff === "red" ? " · deadly" : "";
+      el.challengeBtn.innerHTML = "CHALLENGE #" + (rank - 1) + diffLbl + ' <span class="cta-flag">🎫 1</span>';
+    }
     el.arenaLog.innerHTML = a.log.slice(0, 3).map(function (l) { return '<div class="lg">' + l + '</div>'; }).join("");
+
+    if (focusMe) {   // center the board on your row (on tab open / after a fight)
+      var me = document.getElementById("lbMe");
+      if (me && el.npcList.clientHeight) el.npcList.scrollTop = Math.max(0, me.offsetTop - el.npcList.clientHeight / 2 + (me.offsetHeight || 0) / 2);
+    }
   }
 
   // Colour the challenge by how your team's power compares to the target's.
@@ -2510,7 +2514,7 @@
     }
     if (name === "farm") { checkSeedRenewal(); renderFarm(); }
     else { closeBuildSheet(); closeSeedSheet(); }   // don't leave farm sheets over other tabs
-    if (name === "arena") renderArena();
+    if (name === "arena") renderArena(true);
     if (name === "shop") renderShop();
     if (name === "profile") renderProfile();
     saveSoon();
