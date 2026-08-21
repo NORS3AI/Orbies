@@ -202,13 +202,15 @@
   .btn .cost { font-size: .78rem; opacity: .9; font-weight: 700; }
 
   /* ---- tabs ---- */
-  .tabbar { display: flex; gap: 6px; padding-bottom: 8px; }
+  .tabbar { display: flex; gap: 5px; padding-bottom: 8px; }
   .tab {
-    flex: 1; padding: 9px 6px; border-radius: 11px; font-weight: 800; font-size: .9rem; min-height: 42px;
+    flex: 1; padding: 9px 4px; border-radius: 11px; font-weight: 800; font-size: .82rem; min-height: 42px;
     border: 1px solid var(--panel-brd); background: rgba(124,92,255,0.10); color: var(--ink-soft);
-    cursor: pointer; font-family: var(--font);
+    cursor: pointer; font-family: var(--font); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
   }
   .tab.active { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; border-color: transparent; }
+  /* hide the text labels on narrow screens so five emoji tabs always fit */
+  @media (max-width: 520px) { .tab .tl { display: none; } .tab { font-size: 1.1rem; padding: 9px 2px; } }
   .tab-page { animation: fadein .2s ease; }
   @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
 
@@ -369,6 +371,32 @@
   .fr-row span { color: var(--ink-soft); }
   .fr-points { font-weight: 800; color: #ffce54; margin-bottom: 12px; }
 
+  /* ---- shop ---- */
+  .shop-list { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; }
+  .shop-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; background: var(--panel); border: 1px solid var(--panel-brd); }
+  .shop-ico { font-size: 1.7rem; flex: none; }
+  .shop-info { flex: 1; min-width: 0; }
+  .shop-name { font-weight: 800; font-size: .98rem; }
+  .shop-sub { font-size: .76rem; color: var(--ink-soft); }
+  .shop-item .btn { flex: none; min-width: 96px; }
+
+  /* ---- profile ---- */
+  .profile-card { display: flex; flex-direction: column; gap: 18px; background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 16px; padding: 16px; margin-top: 6px; }
+  .profile-top { display: flex; align-items: center; gap: 14px; }
+  .profile-av { width: 64px; height: 64px; flex: none; display: flex; align-items: center; justify-content: center; font-size: 2.2rem; border-radius: 16px; background: rgba(124,92,255,0.14); border: 1px solid var(--panel-brd); box-shadow: 0 0 0 2px rgba(124,92,255,.35), 0 0 18px rgba(124,92,255,.35); }
+  .profile-name { font-weight: 800; font-size: 1.25rem; word-break: break-word; }
+  .profile-sub { font-size: .8rem; color: var(--ink-soft); }
+  .profile-field { display: flex; flex-direction: column; gap: 8px; }
+  .profile-lbl { font-weight: 700; font-size: .86rem; }
+  .profile-hint { color: var(--ink-soft); font-weight: 500; font-size: .74rem; }
+  .profile-row { display: flex; gap: 8px; }
+  .name-input { flex: 1; min-width: 0; padding: 10px 12px; border-radius: 10px; border: 1px solid var(--panel-brd); background: rgba(0,0,0,.3); color: var(--ink); font-family: var(--font); font-size: 1rem; font-weight: 700; }
+  .name-input:focus { outline: none; border-color: var(--violet-2); box-shadow: 0 0 0 2px rgba(124,92,255,.4); }
+  .icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(52px, 1fr)); gap: 8px; }
+  .icon-opt { aspect-ratio: 1/1; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; border-radius: 12px; background: rgba(0,0,0,.28); border: 1px solid var(--panel-brd); cursor: pointer; }
+  .icon-opt.sel { border-color: var(--violet-2); background: rgba(124,92,255,.2); box-shadow: 0 0 0 2px var(--violet-2) inset; }
+  .icon-empty { color: var(--ink-soft); font-size: .82rem; padding: 8px 2px; }
+
   /* ---- roster ---- */
   .roster-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
   .roster-head h2 { margin: 0; font-size: 1.15rem; }
@@ -519,9 +547,11 @@
     </div>
   </div>
   <nav class="wrap tabbar" id="tabbar">
-    <button class="tab active" data-tab="dungeon">⛏️ Dungeon</button>
-    <button class="tab" data-tab="farm">🌱 Farm</button>
-    <button class="tab" data-tab="arena">⚔️ Arena</button>
+    <button class="tab active" data-tab="dungeon">⛏️<span class="tl"> Dungeon</span></button>
+    <button class="tab" data-tab="farm">🌱<span class="tl"> Farm</span></button>
+    <button class="tab" data-tab="arena">⚔️<span class="tl"> Arena</span></button>
+    <button class="tab" data-tab="shop">🛒<span class="tl"> Shop</span></button>
+    <button class="tab" data-tab="profile">🧙<span class="tl"> You</span></button>
   </nav>
 </header>
 
@@ -598,6 +628,35 @@
       <div class="arena-cta">
         <div class="arena-log" id="arenaLog"></div>
         <button class="btn primary big" id="challengeBtn">CHALLENGE <span class="cta-flag">🎫 1</span></button>
+      </div>
+    </div>
+
+    <div id="tabShop" class="tab-page" hidden>
+      <div class="farm-head"><h2>🛒 Shop</h2><span class="cap">Spend gold</span></div>
+      <div class="shop-list" id="shopList"></div>
+    </div>
+
+    <div id="tabProfile" class="tab-page" hidden>
+      <div class="farm-head"><h2>🧙 You</h2></div>
+      <div class="profile-card">
+        <div class="profile-top">
+          <div class="profile-av" id="profileAv">🟣</div>
+          <div class="profile-meta">
+            <div class="profile-name" id="profileName">—</div>
+            <div class="profile-sub" id="profileSub"></div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label class="profile-lbl" for="nameInput">Name <span class="profile-hint">(spaces become hyphens)</span></label>
+          <div class="profile-row">
+            <input id="nameInput" class="name-input" type="text" maxlength="20" placeholder="your-handle" autocomplete="off" spellcheck="false" />
+            <button class="btn small primary" id="nameSave">Save</button>
+          </div>
+        </div>
+        <div class="profile-field">
+          <div class="profile-lbl">Icon <span class="profile-hint">from Orbies you've collected</span></div>
+          <div class="icon-grid" id="iconGrid"></div>
+        </div>
       </div>
     </div>
 
@@ -900,6 +959,7 @@
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0,
+      playerIcon: "", dex: [],
       farm: freshFarm(),
       arena: freshArena()
     };
@@ -972,7 +1032,9 @@
           state.autoBg = !!p.autoBg;
           state.devMode = !!p.devMode;
           state.devFlags = !!p.devFlags;
-          state.tab = (p.tab === "farm" || p.tab === "arena") ? p.tab : "dungeon";
+          state.playerIcon = typeof p.playerIcon === "string" ? p.playerIcon : "";
+          state.dex = Array.isArray(p.dex) ? p.dex.filter(function (x) { return typeof x === "number" && x >= 0 && x < SPECIES.length; }) : [];
+          state.tab = (["farm", "arena", "shop", "profile"].indexOf(p.tab) >= 0) ? p.tab : "dungeon";
           state.farm = sanitizeFarm(p.farm);
           state.arena = sanitizeArena(p.arena);
           state.floor = Math.max(1, p.floor | 0);
@@ -992,6 +1054,8 @@
       }
     } catch (e) { /* storage blocked — run fresh */ }
     nextId = state.nid;
+    // Backfill the dex from Orbies you're currently holding.
+    state.roster.forEach(function (o) { if (state.dex.indexOf(o.si) < 0) state.dex.push(o.si); });
     timers = {};
   }
 
@@ -1089,6 +1153,15 @@
     npcList: document.getElementById("npcList"),
     arenaLog: document.getElementById("arenaLog"),
     challengeBtn: document.getElementById("challengeBtn"),
+    tabShop: document.getElementById("tabShop"),
+    shopList: document.getElementById("shopList"),
+    tabProfile: document.getElementById("tabProfile"),
+    profileAv: document.getElementById("profileAv"),
+    profileName: document.getElementById("profileName"),
+    profileSub: document.getElementById("profileSub"),
+    nameInput: document.getElementById("nameInput"),
+    nameSave: document.getElementById("nameSave"),
+    iconGrid: document.getElementById("iconGrid"),
     fightScreen: document.getElementById("fightScreen"),
     fightSpeed: document.getElementById("fightSpeed"),
     fightResult: document.getElementById("fightResult"),
@@ -1648,6 +1721,8 @@
     updateHpBar();
     if (state.tab === "farm") renderFarm();
     if (state.tab === "arena") renderArena();
+    if (state.tab === "shop") renderShop();
+    if (state.tab === "profile") renderProfile();
   }
 
   function fmt(n) {
@@ -1663,9 +1738,11 @@
   /* ============================================================
      Actions
      ============================================================ */
+  function learnSpecies(si) { if (state.dex.indexOf(si) < 0) state.dex.push(si); }
   function makeOrbie() {
     var si = Math.floor(Math.random() * SPECIES.length);
     var sp = SPECIES[si];
+    learnSpecies(si);   // remember every Orbie ever hatched (for the Profile icon picker)
     // 10% chance to hatch already leveled up (Lv 2–9).
     var level = (Math.random() < 0.10) ? (2 + Math.floor(Math.random() * 8)) : 1;
     return { id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p, base: weightedRarity(), level: level, stage: 0, _new: true };
@@ -2092,7 +2169,10 @@
   function teamHp() { return activeAttackers().reduce(function (s, o) { return s + orbieHp(o); }, 0); }
   function arenaSeed() { return Math.floor(Date.now() / ARENA_RESHUFFLE_MS); }
   function playerTier() { return clamp(Math.floor(state.arena.points / ARENA_POINTS_PER_TIER), 0, ARENA_MAX_TIER); }
-  function playerEmoji() { return state.roster.length ? state.roster[0].e : "🟣"; }
+  function playerEmoji() {
+    if (state.playerIcon) return state.playerIcon;                 // chosen in Profile
+    return state.roster.length ? state.roster[0].e : "🟣";
+  }
 
   function regenFlags() {
     var a = state.arena, now = Date.now();
@@ -2200,19 +2280,26 @@
     var gained = 0;
     if (sim.win) {
       a.wins++;
-      var beforeTier = playerTier();
+      var beforeTier = playerTier(), beforePts = a.points;
+      // The bottom (entry) of the next tier — topping your tier steps here, the
+      // "next rung": e.g. winning at the top of Bronze I lands you at the very
+      // end of Bronze II, not deep inside it.
+      var nextRung = (beforeTier + 1) * ARENA_POINTS_PER_TIER;
+      var raw;
       if (champ) {
-        gained = Math.max(1, (playerTier() + 1) * ARENA_POINTS_PER_TIER - a.points);
+        raw = nextRung;                       // you're #1 — step onto the next rung
       } else {
         // Dominance-based leap: crush a rival (whole team survives) and you rocket
-        // up many ranks; scrape by and you climb just past them. This lets an
-        // over-levelled team fly up until the NPCs finally match its power.
+        // up the ranks; scrape by and you climb just past them.
         var dom = sim.youAlive / Math.max(1, youTeam.length);
         var leap = dom >= 0.999 ? Math.round(a.points * 0.18 + 25)
                  : dom >= 0.6 ? 3 : 1;
-        gained = Math.max(1, (target.points - a.points) + leap);
+        raw = a.points + (target.points - a.points) + leap;
       }
-      a.points = Math.min((ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER, a.points + gained);
+      // A single win climbs within your tier, or at most steps onto the entry of
+      // the next tier — never overshooting deeper than that next rung.
+      a.points = clamp(Math.min(raw, nextRung), 0, (ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER);
+      gained = a.points - beforePts;
       a.log.unshift("🏆 Beat " + target.name + " · +" + gained + " pts");
       if (playerTier() > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(playerTier()) + "!");
     } else {
@@ -2341,13 +2428,81 @@
     return "red";
   }
 
+  /* ============================================================
+     Shop
+     ============================================================ */
+  function bulkOrbCost(n) { var t = 0, ob = state.orbsBought, i; for (i = 0; i < n; i++) t += Math.round(12 * Math.pow(1.12, ob + i)); return t; }
+  var SHOP_ITEMS = [
+    { id: "orb1", ico: "🔮", name: "Buy 1 Orb", sub: "A single orb to open", cost: function () { return buyOrbCost(); }, buy: function () { state.orbs += 1; state.orbsBought += 1; } },
+    { id: "orb10", ico: "🔮", name: "Buy 10 Orbs", sub: "A whole handful at once", cost: function () { return bulkOrbCost(10); }, buy: function () { state.orbs += 10; state.orbsBought += 10; } },
+    { id: "hold", ico: "🧺", name: "Expand Hold +1", sub: "Hold one more Orbie at a time", cost: function () { return expandCost(); }, maxed: function () { return state.holdCap >= MAX_ATTACKERS; }, buy: function () { state.holdCap += 1; } }
+  ];
+  function renderShop() {
+    el.shopList.innerHTML = SHOP_ITEMS.map(function (it) {
+      var maxed = it.maxed && it.maxed();
+      var cost = maxed ? 0 : it.cost();
+      var btn = maxed ? '<button class="btn small" disabled>MAX</button>'
+        : '<button class="btn small primary" data-shop="' + it.id + '"' + (state.gold < cost ? " disabled" : "") + '>🪙 ' + fmt(cost) + '</button>';
+      return '<div class="shop-item"><span class="shop-ico">' + it.ico + '</span>' +
+        '<span class="shop-info"><span class="shop-name">' + it.name + '</span><span class="shop-sub">' + it.sub + '</span></span>' + btn + '</div>';
+    }).join("");
+  }
+  function shopBuy(id) {
+    var it = null, i; for (i = 0; i < SHOP_ITEMS.length; i++) if (SHOP_ITEMS[i].id === id) it = SHOP_ITEMS[i];
+    if (!it) return;
+    if (it.maxed && it.maxed()) return;
+    var cost = it.cost();
+    if (state.gold < cost) { toast("Not enough gold (🪙" + fmt(cost) + ")."); return; }
+    state.gold -= cost; it.buy();
+    renderAll(); saveSoon();
+    toast("🛒 " + it.name + "!");
+  }
+
+  /* ============================================================
+     Profile
+     ============================================================ */
+  function iconOptions() {
+    var seen = {}, out = [];
+    function add(e) { if (e && !seen[e]) { seen[e] = 1; out.push(e); } }
+    add("🟣");
+    state.roster.forEach(function (o) { add(o.e); });
+    state.dex.forEach(function (si) { add(SPECIES[si].e); });
+    return out;
+  }
+  function cleanName(v) { return String(v || "").replace(/\s+/g, "-").replace(/[^A-Za-z0-9_-]/g, "").replace(/-+/g, "-").replace(/^-+|-+$/g, "").slice(0, 20); }
+  function renderProfile() {
+    el.profileAv.textContent = playerEmoji();
+    el.profileName.textContent = state.arena.name;
+    el.profileSub.textContent = rankName(playerTier()) + " · 🏆 " + fmt(state.arena.points) + " pts · " + state.dex.length + "/" + SPECIES.length + " Orbies discovered";
+    if (document.activeElement !== el.nameInput) el.nameInput.value = state.arena.name;
+    var cur = playerEmoji(), opts = iconOptions();
+    el.iconGrid.innerHTML = opts.map(function (e) {
+      return '<button class="icon-opt' + (e === cur ? " sel" : "") + '" data-icon="' + e + '">' + e + '</button>';
+    }).join("");
+  }
+  function saveName() {
+    var v = cleanName(el.nameInput.value);
+    if (!v) { toast("Enter a name (letters, numbers, hyphens)."); el.nameInput.value = state.arena.name; return; }
+    state.arena.name = v;
+    renderProfile(); saveSoon();
+    toast("✅ Renamed to " + v);
+  }
+  function selectIcon(e) {
+    if (!e) return;
+    state.playerIcon = e;
+    renderProfile(); saveSoon();
+    toast("Icon set " + e);
+  }
+
   /* ---- Tabs ---- */
   function setTab(name) {
-    if (name !== "dungeon" && name !== "farm" && name !== "arena") name = "dungeon";
+    if (["dungeon", "farm", "arena", "shop", "profile"].indexOf(name) < 0) name = "dungeon";
     state.tab = name;
     el.tabDungeon.hidden = name !== "dungeon";
     el.tabFarm.hidden = name !== "farm";
     el.tabArena.hidden = name !== "arena";
+    el.tabShop.hidden = name !== "shop";
+    el.tabProfile.hidden = name !== "profile";
     var btns = el.tabbar.children;
     for (var i = 0; i < btns.length; i++) {
       var t = btns[i].getAttribute("data-tab");
@@ -2355,7 +2510,9 @@
     }
     if (name === "farm") { checkSeedRenewal(); renderFarm(); }
     else { closeBuildSheet(); closeSeedSheet(); }   // don't leave farm sheets over other tabs
-    if (name === "arena") { renderArena(); }
+    if (name === "arena") renderArena();
+    if (name === "shop") renderShop();
+    if (name === "profile") renderProfile();
     saveSoon();
   }
 
@@ -2406,6 +2563,23 @@
   });
   el.challengeBtn.addEventListener("click", startChallenge);
   el.fightSpeed.addEventListener("click", toggleFightSpeed);
+
+  // Shop
+  el.shopList.addEventListener("click", function (e) {
+    var id = closestAttr(e.target, "data-shop", el.shopList);
+    if (id) shopBuy(id);
+  });
+  // Profile: rename (spaces -> hyphens live) + icon picker
+  el.nameInput.addEventListener("input", function () {
+    var s = el.nameInput.selectionStart, v = el.nameInput.value.replace(/\s/g, "-");
+    if (v !== el.nameInput.value) { el.nameInput.value = v; try { el.nameInput.setSelectionRange(s, s); } catch (e2) {} }
+  });
+  el.nameInput.addEventListener("keydown", function (e) { if (e.key === "Enter") saveName(); });
+  el.nameSave.addEventListener("click", saveName);
+  el.iconGrid.addEventListener("click", function (e) {
+    var ic = closestAttr(e.target, "data-icon", el.iconGrid);
+    if (ic) selectIcon(ic);
+  });
 
   // Farm toolbar: Build / Seeds sheets + layout toggle
   el.buildBtn.addEventListener("click", openBuildSheet);
