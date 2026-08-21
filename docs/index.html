@@ -6,7 +6,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=no, viewport-fit=cover" />
 <title>Orbies — Idle RPG &amp; Gacha Creature Collector</title>
 <meta name="description" content="Orbies is an incremental idle & gacha game. Hatch orbs into creatures that battle rocks and floor bosses for you, sell duplicates for treats, level up, and evolve them into rare final forms." />
-<meta name="theme-color" content="#0b0b1a" />
+<meta name="theme-color" content="#000000" />
 
 <!-- Open Graph / social -->
 <meta property="og:type" content="website" />
@@ -50,27 +50,13 @@
   body {
     font-family: var(--font);
     color: var(--ink);
-    background:
-      radial-gradient(1100px 700px at 12% -8%, rgba(124,92,255,0.30), transparent 60%),
-      radial-gradient(900px 620px at 92% 4%, rgba(88,201,255,0.18), transparent 55%),
-      radial-gradient(800px 700px at 50% 118%, rgba(255,119,200,0.16), transparent 55%),
-      linear-gradient(180deg, var(--bg), var(--bg-2));
-    background-attachment: fixed;
+    background: #000;
     min-height: 100vh;
     overflow-x: hidden;
   }
 
   a { color: var(--violet-2); }
   .wrap { width: min(1000px, 94vw); margin: 0 auto; }
-
-  /* floating background orbs */
-  .field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
-  .field .orb { position: absolute; border-radius: 50%; opacity: .5; animation: drift linear infinite; }
-  @keyframes drift {
-    0% { transform: translateY(0) translateX(0) scale(1); }
-    50% { transform: translateY(-40px) translateX(24px) scale(1.08); }
-    100% { transform: translateY(0) translateX(0) scale(1); }
-  }
 
   header.nav {
     position: sticky; top: 0; z-index: 20;
@@ -260,6 +246,7 @@
   .reveal .emo { font-size: 84px; line-height: 1; filter: drop-shadow(0 8px 20px rgba(0,0,0,0.5)); }
   .reveal .rname { font-weight: 800; font-size: 1.4rem; margin-top: 10px; }
   .reveal .rrar { margin-top: 8px; font-weight: 800; font-size: 1.05rem; }
+  .reveal .rstats { margin-top: 6px; font-weight: 800; font-size: .92rem; color: var(--mint); }
   .reveal .reveal-msg { margin-top: 12px; color: var(--ink-soft); font-size: .86rem; max-width: 320px; margin-left: auto; margin-right: auto; line-height: 1.4; }
   .reveal .reveal-actions { margin-top: 16px; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; }
   .reveal .pick-grid { display: grid; grid-template-columns: 1fr; gap: 8px; max-height: 44vh; overflow-y: auto; width: min(340px, 80vw); }
@@ -302,8 +289,6 @@
 </style>
 </head>
 <body>
-
-<div class="field" id="field" aria-hidden="true"></div>
 
 <header class="nav">
   <div class="wrap nav-in">
@@ -379,6 +364,7 @@
     <div class="emo" id="revealEmo">🥚</div>
     <div class="rname" id="revealName">???</div>
     <div class="rrar" id="revealRar">???</div>
+    <div class="rstats" id="revealStats"></div>
     <div class="reveal-msg" id="revealMsg"></div>
     <div class="reveal-actions" id="revealActions"></div>
   </div>
@@ -423,25 +409,6 @@
     }
     _lastTouchEnd = now;
   }, { passive: false });
-
-  /* ============================================================
-     Floating background orbs
-     ============================================================ */
-  var COLORS = ["#7c5cff", "#58c9ff", "#4ee0a0", "#ffce54", "#ff77c8", "#a98bff"];
-  var field = document.getElementById("field");
-  for (var i = 0; i < 16; i++) {
-    var o = document.createElement("div");
-    o.className = "orb";
-    var size = 20 + Math.floor(Math.random() * 90);
-    o.style.width = size + "px"; o.style.height = size + "px";
-    o.style.left = (Math.random() * 100) + "vw";
-    o.style.top = (Math.random() * 100) + "vh";
-    o.style.background = COLORS[Math.floor(Math.random() * COLORS.length)];
-    o.style.animationDuration = (8 + Math.random() * 12).toFixed(1) + "s";
-    o.style.animationDelay = (-Math.random() * 10).toFixed(1) + "s";
-    o.style.opacity = (0.12 + Math.random() * 0.26).toFixed(2);
-    field.appendChild(o);
-  }
 
   /* ============================================================
      Game data
@@ -620,6 +587,7 @@
     revealEmo: document.getElementById("revealEmo"),
     revealName: document.getElementById("revealName"),
     revealRar: document.getElementById("revealRar"),
+    revealStats: document.getElementById("revealStats"),
     revealMsg: document.getElementById("revealMsg"),
     revealActions: document.getElementById("revealActions"),
     toast: document.getElementById("toast")
@@ -644,6 +612,7 @@
     el.revealName.textContent = ob.n;
     el.revealRar.textContent = RARITIES[r];
     el.revealRar.style.color = RARITY_COLORS[r];
+    el.revealStats.textContent = "Lv " + ob.level + " · " + (Math.round(orbieDps(ob) * 10) / 10) + " DPS";
   }
 
   function addRevealBtn(cls, html, fn) {
@@ -1125,7 +1094,9 @@
   function makeOrbie() {
     var si = Math.floor(Math.random() * SPECIES.length);
     var sp = SPECIES[si];
-    return { id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p, base: weightedRarity(), level: 1, stage: 0, _new: true };
+    // 10% chance to hatch already leveled up (Lv 2–9).
+    var level = (Math.random() < 0.10) ? (2 + Math.floor(Math.random() * 8)) : 1;
+    return { id: nextId++, si: si, n: sp.n, e: sp.e, p: sp.p, base: weightedRarity(), level: level, stage: 0, _new: true };
   }
 
   function doOpenOrb() {
