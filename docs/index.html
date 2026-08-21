@@ -340,12 +340,29 @@
   .lbpts { display: flex; align-items: center; gap: 4px; font-weight: 800; font-size: .95rem; color: #ffce54; background: rgba(0,0,0,.3); border: 1px solid var(--panel-brd); border-radius: 10px; padding: 5px 10px; flex-shrink: 0; }
   .lbpts .pt-ico { font-size: .8rem; }
 
-  .arena-cta { position: sticky; bottom: 8px; display: flex; flex-direction: column; gap: 6px; }
-  .arena-cta .btn.big { width: 100%; letter-spacing: .06em; }
+  .arena-cta { display: flex; flex-direction: column; gap: 6px; }
   .cta-flag { opacity: .9; margin-left: 6px; font-size: .85em; }
-  .btn.big.diff-green { background: linear-gradient(180deg,#3ddc84,#25a55b); border-color: #43e08a; color: #05210f; }
-  .btn.big.diff-yellow { background: linear-gradient(180deg,#ffd34d,#e0a91e); border-color: #ffdd6b; color: #2a1e00; }
-  .btn.big.diff-red { background: linear-gradient(180deg,#ff5f6d,#d43443); border-color: #ff7b86; color: #2a0308; }
+  /* ---- arena challenge picker: a swipeable strip of the next rivals above you ---- */
+  .arena-pick { margin-bottom: 12px; }
+  .arena-pick-hd { font-weight: 800; font-size: .92rem; margin-bottom: 8px; }
+  .arena-pick-hd .ap-sub { color: var(--ink-soft); font-weight: 700; font-size: .78rem; }
+  .opp-strip { display: flex; gap: 8px; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 4px; scroll-snap-type: x proximity; }
+  .opp-strip::-webkit-scrollbar { height: 6px; }
+  .opp-strip::-webkit-scrollbar-thumb { background: rgba(255,255,255,.14); border-radius: 3px; }
+  .opp-card { flex: 0 0 auto; width: 118px; scroll-snap-align: start; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 4px; text-align: center;
+    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 12px; padding: 10px 8px 8px; font-family: var(--font); color: var(--ink); position: relative; }
+  .opp-card:disabled { opacity: .5; cursor: default; }
+  .opp-card:active { transform: scale(.97); }
+  .opp-rank { position: absolute; top: 6px; left: 8px; font-size: .68rem; font-weight: 800; color: var(--ink-soft); }
+  .opp-av { width: 46px; height: 46px; display: flex; align-items: center; justify-content: center; font-size: 1.7rem; background: rgba(0,0,0,.35); border: 1px solid var(--panel-brd); border-radius: 10px; margin-top: 6px; }
+  .opp-name { font-weight: 800; font-size: .8rem; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .opp-dps { font-size: .72rem; font-weight: 700; color: #4ee0a0; }
+  .opp-reward { margin-top: 2px; font-weight: 800; font-size: .92rem; border-radius: 9px; padding: 3px 8px; width: 100%; background: rgba(0,0,0,.3); }
+  .opp-flag { font-size: .68rem; color: var(--ink-soft); font-weight: 700; }
+  .opp-card.diff-green { border-color: #43e08a; } .opp-card.diff-green .opp-reward { background: linear-gradient(180deg,#3ddc84,#25a55b); color: #05210f; }
+  .opp-card.diff-yellow { border-color: #ffdd6b; } .opp-card.diff-yellow .opp-reward { background: linear-gradient(180deg,#ffd34d,#e0a91e); color: #2a1e00; }
+  .opp-card.diff-red { border-color: #ff7b86; } .opp-card.diff-red .opp-reward { background: linear-gradient(180deg,#ff5f6d,#d43443); color: #2a0308; }
+  .opp-empty { color: var(--ink-soft); font-size: .85rem; padding: 14px 4px; }
   .arena-log { display: flex; flex-direction: column; gap: 4px; }
   .arena-log .lg { font-size: .78rem; color: var(--ink-soft); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 8px; padding: 4px 10px; }
 
@@ -638,10 +655,13 @@
         </div>
         <div class="arena-flags"><span class="flag-ico">🎫</span><b id="arenaFlags">5</b><span class="flag-max">/5</span><span class="sub" id="arenaFlagTimer"></span></div>
       </div>
+      <div class="arena-pick">
+        <div class="arena-pick-hd" id="oppHd">⚔️ Choose a rival <span class="ap-sub">— reach higher for more 🏆</span></div>
+        <div class="opp-strip" id="oppList"></div>
+      </div>
       <div class="board" id="npcList"></div>
       <div class="arena-cta">
         <div class="arena-log" id="arenaLog"></div>
-        <button class="btn primary big" id="challengeBtn">CHALLENGE <span class="cta-flag">🎫 1</span></button>
       </div>
     </div>
 
@@ -1172,7 +1192,8 @@
     arenaPoints: document.getElementById("arenaPoints"),
     npcList: document.getElementById("npcList"),
     arenaLog: document.getElementById("arenaLog"),
-    challengeBtn: document.getElementById("challengeBtn"),
+    oppList: document.getElementById("oppList"),
+    oppHd: document.getElementById("oppHd"),
     tabShop: document.getElementById("tabShop"),
     shopList: document.getElementById("shopList"),
     tabProfile: document.getElementById("tabProfile"),
@@ -2234,6 +2255,12 @@
   // combat power. Beating a rival banks 1-5 points by their standing: top 10%
   // (rank <=10) gives the max 5, then 4 / 3 / 2, and the bottom quarter gives 1.
   function arenaWinPoints(rank) { if (rank <= 10) return 5; if (rank <= 25) return 4; if (rank <= 50) return 3; if (rank <= 75) return 2; return 1; }
+  // The PLAYER's reward for a chosen rival = how far ABOVE your slot you reach:
+  // the rival directly above pays +1, each rung higher pays one more, capped at +5.
+  // Rungs climb in DPS as you go up the strip, so the tougher (higher-DPS) rivals
+  // in your list of 10 are worth more points — that's the choice: play safe near
+  // you for a little, or reach up to a deadlier rival for up to +5.
+  function arenaReachReward(myRank, targetRank) { return clamp(myRank - targetRank, 1, 5); }
   // Each NPC's total score = the win-points stacked from the bottom up to it, so
   // banking a win's reward takes you exactly onto the rung you beat.
   function npcScoreForRank(r) { var s = 0; for (var rr = ARENA_BOARD_SIZE - 1; rr >= r; rr--) s += arenaWinPoints(rr); return s; }
@@ -2301,7 +2328,10 @@
     return { events: events, win: npcAlive === 0 && youAlive > 0, youAlive: youAlive, npcAlive: npcAlive, totalYou: totY, totalNpc: totN, turns: events.length };
   }
 
-  function startChallenge() {
+  // Challenge a CHOSEN rival above you. You may pick any of the ~10 rungs directly
+  // above your slot (nearest = safest/cheapest, higher = tougher/pricier). No arg
+  // (or an out-of-range one) defaults to the rival directly above.
+  function startChallenge(targetRank) {
     regenFlags();
     var a = state.arena;
     if (fightPlaying) return;
@@ -2309,29 +2339,30 @@
     if (a.flags <= 0) { toast("Out of challenge flags — 1 returns every 2 min."); return; }
     var board = arenaBoard(), rank = boardRankOf(board);
     if (rank <= 1) { toast("🏆 You're #1 — champion of the arena!"); return; }
-    var target = board[rank - 2];   // the rival directly ABOVE you — you always fight up
+    var tRank = clamp(parseInt(targetRank, 10) || (rank - 1), 1, rank - 1);   // a rung ABOVE you
+    var target = board[tRank - 1];
     a.flags--;
-    var seed = arenaSeed() * 977 + rank;
+    var seed = arenaSeed() * 977 + tRank;
     var youTeam = buildYouTeam(), npcTeam = buildNpcTeam(target, seed);
     var sim = simFight(youTeam, npcTeam);
     var gained = 0;
     if (sim.win) {
       a.wins++;
       var beforeTier = tierFromRank(rank);
-      // Bank 1-5 arena points by the rival's standing (top 10% = 5). Points only
-      // accumulate, so your rank only ever improves — never a reset.
-      gained = arenaWinPoints(rank - 1);
+      // Bank points by how far up you reached (1 … 5). Points only accumulate, so
+      // your rank only ever improves — never a reset.
+      gained = arenaReachReward(rank, tRank);
       a.points = clamp(a.points + gained, 0, ARENA_TOP_SCORE + 20);
-      a.log.unshift("🏆 Beat " + target.name + " · +" + gained + " arena pts");
+      a.log.unshift("🏆 Beat " + target.name + " (#" + tRank + ") · +" + gained + " arena pts");
       var afterTier = tierFromRank(boardRankOf(arenaBoard()));
       if (afterTier > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(afterTier) + "!");
     } else {
       a.losses++;
-      a.log.unshift("💥 Lost to " + target.name);
+      a.log.unshift("💥 Lost to " + target.name + " (#" + tRank + ")");
     }
     a.log = a.log.slice(0, 8);
     renderArena(); renderStats(); saveSoon();
-    openFight(youTeam, npcTeam, sim, { target: target, gained: gained, rank: rank });
+    openFight(youTeam, npcTeam, sim, { target: target, gained: gained, rank: rank, tRank: tRank });
   }
 
   /* ---- Fight screen (animated replay of simFight) ---- */
@@ -2434,18 +2465,28 @@
     }).join("");
     el.npcList.scrollTop = prevScroll;   // keep the player's manual scroll across periodic re-renders
 
-    var top1 = rank <= 1;
-    var canFight = a.flags > 0 && activeAttackers().length > 0 && !top1;
-    el.challengeBtn.disabled = !canFight;
-    if (top1) {
-      el.challengeBtn.className = "btn primary big";
-      el.challengeBtn.innerHTML = "🏆 Arena Champion — you're #1";
+    // ---- Challenge picker: the next ~10 rungs directly above you, nearest first.
+    // You choose whom to fight; each pays out by how tough THEY are for your team.
+    var haveTeam = activeAttackers().length > 0, noFlag = a.flags <= 0;
+    if (rank <= 1) {
+      el.oppHd.innerHTML = "🏆 Champion";
+      el.oppList.innerHTML = '<div class="opp-empty">🏆 You\'re #1 — champion of the arena! No rivals left to fight.</div>';
     } else {
-      var target = board[rank - 2];   // always the rival directly above — fight up
-      var diff = activeAttackers().length ? difficultyVs(target) : "";
-      el.challengeBtn.className = "btn primary big" + (diff ? " diff-" + diff : "");
-      var diffLbl = diff === "green" ? " · easy" : diff === "yellow" ? " · fair" : diff === "red" ? " · deadly" : "";
-      el.challengeBtn.innerHTML = "CHALLENGE #" + (rank - 1) + " · +" + arenaWinPoints(rank - 1) + "🏆" + diffLbl + ' <span class="cta-flag">🎫 1</span>';
+      el.oppHd.innerHTML = '⚔️ Choose a rival <span class="ap-sub">— reach higher for more 🏆</span>';
+      var picks = [];
+      for (var pr = rank - 1; pr >= Math.max(1, rank - 10); pr--) picks.push(board[pr - 1]);   // rivals above, nearest first
+      el.oppList.innerHTML = picks.map(function (t) {
+        var diff = haveTeam ? difficultyVs(t) : "";       // colour = risk (by DPS/HP)
+        var rew = arenaReachReward(rank, t.rank);          // reward = how far up you reach
+        return '<button class="opp-card' + (diff ? " diff-" + diff : "") + '" data-opp="' + t.rank + '"' + ((!haveTeam || noFlag) ? " disabled" : "") + '>' +
+          '<div class="opp-rank">#' + t.rank + '</div>' +
+          '<div class="opp-av">' + t.emoji + '</div>' +
+          '<div class="opp-name">' + t.name + '</div>' +
+          '<div class="opp-dps">⚔️ ' + fmt(t.dps) + '/s</div>' +
+          '<div class="opp-reward">+' + rew + ' 🏆</div>' +
+          '<div class="opp-flag">🎫 1</div>' +
+          '</button>';
+      }).join("");
     }
     el.arenaLog.innerHTML = a.log.slice(0, 3).map(function (l) { return '<div class="lg">' + l + '</div>'; }).join("");
 
@@ -2603,7 +2644,10 @@
     var t = closestAttr(e.target, "data-tab", el.tabbar);
     if (t) setTab(t);
   });
-  el.challengeBtn.addEventListener("click", startChallenge);
+  el.oppList.addEventListener("click", function (e) {
+    var r = closestAttr(e.target, "data-opp", el.oppList);
+    if (r) startChallenge(parseInt(r, 10));
+  });
   el.fightSpeed.addEventListener("click", toggleFightSpeed);
 
   // Shop
