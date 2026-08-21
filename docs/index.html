@@ -973,7 +973,10 @@
     var base = freshArena();
     if (!a || typeof a !== "object") return base;
     base.name = (typeof a.name === "string" && a.name) ? a.name : base.name;
-    base.points = clamp(a.points | 0, 0, (ARENA_MAX_TIER + 1) * ARENA_POINTS_PER_TIER);
+    // Arena points are now a small accumulated score (1-5 per win). Legacy saves
+    // stored a huge leaderboard score under the old system — reset those.
+    var pts = a.points | 0;
+    base.points = pts > ARENA_TOP_SCORE + 20 ? 0 : clamp(pts, 0, ARENA_TOP_SCORE + 20);
     base.flags = clamp(a.flags | 0, 0, ARENA_MAX_FLAGS);
     base.flagAt = (typeof a.flagAt === "number" && a.flagAt > 0) ? a.flagAt : Date.now();
     base.wins = Math.max(0, a.wins | 0);
@@ -2169,7 +2172,7 @@
      ============================================================ */
   function teamHp() { return activeAttackers().reduce(function (s, o) { return s + orbieHp(o); }, 0); }
   function arenaSeed() { return Math.floor(Date.now() / ARENA_RESHUFFLE_MS); }
-  function playerTier() { return clamp(Math.floor(state.arena.points / ARENA_POINTS_PER_TIER), 0, ARENA_MAX_TIER); }
+  function playerTier() { return tierFromRank(playerRank()); }
   function playerEmoji() {
     if (state.playerIcon) return state.playerIcon;                 // chosen in Profile
     return state.roster.length ? state.roster[0].e : "🟣";
@@ -2197,32 +2200,36 @@
     return { dps: dps, hp: hp };
   }
 
-  // A single CONTINUOUS ladder: one 100-row board spanning the whole game
-  // (from a few points up to the top). You climb it monotonically — every win
-  // moves you UP toward #1 and never resets you back down a tier.  NPC POINTS
-  // are fixed (independent of the 2h reshuffle), so your rank only moves when
-  // YOU do; the reshuffle only refreshes their names/faces.
-  function npcBoardPoints(k) {
-    // k = 0 (strongest, #1) .. 98 (weakest). Bottom-heavy so early climbing has
-    // plenty of beatable rungs, the top a few very strong ones.
-    var frac = k / (ARENA_BOARD_SIZE - 2);
-    var jitter = Math.round((hashRand(k * 13 + 1, 7) - 0.5) * 6);
-    return clamp(Math.round((ARENA_MAX_POINTS - 1) * Math.pow(1 - frac, 1.8)) + jitter, 1, ARENA_MAX_POINTS - 1);
-  }
-  function genArenaNpc(seed, k) {
-    var pts = npcBoardPoints(k), pw = arenaNpcPower(pts, 0, k);
-    return { you: false, name: arenaHandle(seed, k), emoji: arenaEmoji(seed, k), points: pts, dps: pw.dps, hp: pw.hp };
-  }
+  // ---- Arena POINTS are a small reward (the leaderboard score), separate from
+  // combat power. Beating a rival banks 1-5 points by their standing: top 10%
+  // (rank <=10) gives the max 5, then 4 / 3 / 2, and the bottom quarter gives 1.
+  function arenaWinPoints(rank) { if (rank <= 10) return 5; if (rank <= 25) return 4; if (rank <= 50) return 3; if (rank <= 75) return 2; return 1; }
+  // Each NPC's total score = the win-points stacked from the bottom up to it, so
+  // banking a win's reward takes you exactly onto the rung you beat.
+  function npcScoreForRank(r) { var s = 0; for (var rr = ARENA_BOARD_SIZE - 1; rr >= r; rr--) s += arenaWinPoints(rr); return s; }
+  var ARENA_TOP_SCORE = npcScoreForRank(1);   // the #1 NPC's score (~259)
+  // Combat difficulty grows steeply with a rung's RANK (not its point score), so
+  // higher rungs are genuinely tougher and the very top is a wall.
+  function rankToGsi(rank) { return (ARENA_BOARD_SIZE - rank) / (ARENA_BOARD_SIZE - 1) * ARENA_MAX_POINTS; }
+  function tierFromRank(rank) { return clamp(Math.round((ARENA_BOARD_SIZE - rank) / (ARENA_BOARD_SIZE - 1) * ARENA_MAX_TIER), 0, ARENA_MAX_TIER); }
 
-  // The whole leaderboard, you slotted in by points (higher points = higher rank).
+  // A single CONTINUOUS ladder you climb by BANKING arena points (1-5 per win).
+  // You never reset down a tier — points only accumulate, so your rank only
+  // improves. NPC scores/power are fixed; the 2h reshuffle only swaps names/faces.
+  function genArenaNpc(seed, k) {
+    var rank = k + 1, pw = arenaNpcPower(rankToGsi(rank), 0, k);
+    return { you: false, rank: rank, name: arenaHandle(seed, k), emoji: arenaEmoji(seed, k), points: npcScoreForRank(rank), dps: pw.dps, hp: pw.hp };
+  }
   function arenaBoard() {
     var seed = arenaSeed(), list = [];
     for (var k = 0; k < ARENA_BOARD_SIZE - 1; k++) list.push(genArenaNpc(seed, k));
     list.push({ you: true, name: state.arena.name, emoji: playerEmoji(), points: state.arena.points, dps: Math.round(teamDps()), hp: teamHp() });
-    list.sort(function (a, b) { if (b.points !== a.points) return b.points - a.points; if (a.you) return 1; if (b.you) return -1; return b.dps - a.dps; });
+    // higher score = higher rank; at a tie YOU sit on top (you earned it)
+    list.sort(function (a, b) { if (b.points !== a.points) return b.points - a.points; if (a.you) return -1; if (b.you) return 1; return b.dps - a.dps; });
     return list;
   }
   function boardRankOf(board) { for (var i = 0; i < board.length; i++) if (board[i].you) return i + 1; return board.length; }
+  function playerRank() { return boardRankOf(arenaBoard()); }
 
   // Split an NPC's totals into an attack line of 3–8 orbies for the fight screen.
   function buildNpcTeam(npc, seed) {
@@ -2280,19 +2287,14 @@
     var gained = 0;
     if (sim.win) {
       a.wins++;
-      var beforeTier = playerTier(), beforePts = a.points, beforeRank = rank;
-      // Win = climb UP the ladder by whole rungs: 1 for a scrape, more for a
-      // decisive win (crush them, whole team standing, and you vault several
-      // rungs). You always land just above a rival — so your rank only ever
-      // improves and never resets down a tier.
-      var dom = sim.youAlive / Math.max(1, youTeam.length);
-      var steps = dom >= 0.999 ? 8 : dom >= 0.6 ? 3 : 1;
-      var landIdx = Math.max(0, (rank - 1) - steps);   // the rung to land just above
-      a.points = clamp(board[landIdx].points + 1, a.points + 1, ARENA_MAX_POINTS);
-      gained = a.points - beforePts;
-      var climbed = beforeRank - boardRankOf(arenaBoard());
-      a.log.unshift("🏆 Beat " + target.name + " · ▲" + Math.max(1, climbed) + " rank" + (climbed === 1 ? "" : "s"));
-      if (playerTier() > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(playerTier()) + "!");
+      var beforeTier = tierFromRank(rank);
+      // Bank 1-5 arena points by the rival's standing (top 10% = 5). Points only
+      // accumulate, so your rank only ever improves — never a reset.
+      gained = arenaWinPoints(rank - 1);
+      a.points = clamp(a.points + gained, 0, ARENA_TOP_SCORE + 20);
+      a.log.unshift("🏆 Beat " + target.name + " · +" + gained + " arena pts");
+      var afterTier = tierFromRank(boardRankOf(arenaBoard()));
+      if (afterTier > beforeTier) a.log.unshift("⬆ Ranked up to " + rankName(afterTier) + "!");
     } else {
       a.losses++;
       a.log.unshift("💥 Lost to " + target.name);
@@ -2383,7 +2385,7 @@
     if (a.seed !== s) { a.seed = s; if (a._greeted) toast("🔀 The arena ladder reshuffled — new challengers!"); a._greeted = true; }
 
     var board = arenaBoard(), rank = boardRankOf(board);
-    el.arenaRankLbl.textContent = rankName(playerTier()) + " · #" + rank;
+    el.arenaRankLbl.textContent = rankName(tierFromRank(rank)) + " · #" + rank;
     el.arenaPoints.textContent = fmt(a.points);
     el.arenaFlags.textContent = String(a.flags);
     if (a.flags >= ARENA_MAX_FLAGS) el.arenaFlagTimer.textContent = "full";
@@ -2413,7 +2415,7 @@
       var diff = activeAttackers().length ? difficultyVs(target) : "";
       el.challengeBtn.className = "btn primary big" + (diff ? " diff-" + diff : "");
       var diffLbl = diff === "green" ? " · easy" : diff === "yellow" ? " · fair" : diff === "red" ? " · deadly" : "";
-      el.challengeBtn.innerHTML = "CHALLENGE #" + (rank - 1) + diffLbl + ' <span class="cta-flag">🎫 1</span>';
+      el.challengeBtn.innerHTML = "CHALLENGE #" + (rank - 1) + " · +" + arenaWinPoints(rank - 1) + "🏆" + diffLbl + ' <span class="cta-flag">🎫 1</span>';
     }
     el.arenaLog.innerHTML = a.log.slice(0, 3).map(function (l) { return '<div class="lg">' + l + '</div>'; }).join("");
 
