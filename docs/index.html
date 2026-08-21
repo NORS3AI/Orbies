@@ -336,9 +336,9 @@
   .arena-log .lg { font-size: .78rem; color: var(--ink-soft); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 8px; padding: 4px 10px; }
 
   /* ---- fight screen ---- */
-  .fight { position: fixed; inset: 0; z-index: 60; background: rgba(4,2,12,.94); display: none; align-items: center; justify-content: center; padding: 14px; }
+  .fight { position: fixed; inset: 0; z-index: 60; background: rgba(4,2,12,.94); display: none; align-items: flex-start; justify-content: center; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
   .fight.show { display: flex; }
-  .fight-box { width: 100%; max-width: 640px; max-height: 94vh; display: flex; flex-direction: column; gap: 12px; }
+  .fight-box { width: 100%; max-width: 640px; margin: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
   .fight-top { display: flex; align-items: center; justify-content: space-between; }
   .fight-title { font-weight: 800; font-size: 1.15rem; }
   .fight-cols { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: start; }
@@ -706,7 +706,7 @@
       <div class="fight-title">⚔️ Arena Battle</div>
       <button class="btn small" id="fightSpeed">▶▶ 2×</button>
     </div>
-    <div class="fight-cols">
+    <div class="fight-cols" id="fightCols">
       <div class="fcol" id="fcolYou"></div>
       <div class="fvs">VS</div>
       <div class="fcol" id="fcolNpc"></div>
@@ -1092,6 +1092,7 @@
     fightScreen: document.getElementById("fightScreen"),
     fightSpeed: document.getElementById("fightSpeed"),
     fightResult: document.getElementById("fightResult"),
+    fightCols: document.getElementById("fightCols"),
     fcolYou: document.getElementById("fcolYou"),
     fcolNpc: document.getElementById("fcolNpc"),
     buyOrb: document.getElementById("buyOrb"),
@@ -2240,8 +2241,10 @@
     el.fcolYou.innerHTML = '<div class="fcol-title">' + state.arena.name + '</div>' + youTeam.map(function (o, i) { return fighterCardHtml("you", i, o); }).join("");
     el.fcolNpc.innerHTML = '<div class="fcol-title">' + meta.target.name + '</div>' + npcTeam.map(function (o, i) { return fighterCardHtml("npc", i, o); }).join("");
     el.fightResult.hidden = true; el.fightResult.innerHTML = "";
+    el.fightCols.style.display = "";
     el.fightSpeed.textContent = "▶▶ 2×"; el.fightSpeed.disabled = false;
     el.fightScreen.classList.add("show");
+    el.fightScreen.scrollTop = 0;
     fightStep();
   }
   function fightDelay() { return Math.round(460 / fightSpeed); }
@@ -2282,6 +2285,8 @@
       '<button class="btn primary big" id="fightClose">Continue</button>';
     el.fightResult.hidden = false;
     el.fightSpeed.disabled = true;
+    el.fightCols.style.display = "none";   // collapse the line-up so the result + Continue is always in view
+    el.fightScreen.scrollTop = 0;
     var close = document.getElementById("fightClose");
     if (close) close.addEventListener("click", closeFight);
   }
