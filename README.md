@@ -12,7 +12,7 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 
 ## 🎮 How it plays
 
-- **🔮 Hatch Orbs** — You start with **5 orbs**. Open each to reveal an Orbie of a random rarity — you never know what you'll get.
+- **🔮 Hatch Orbs** — You start with **5 orbs**. Open each to reveal an Orbie of a random rarity — you never know what you'll get. Or hit **⚙️ Auto-Open** to rip through a whole pile one at a time: tick the rarities you want to **keep** (they replace a weaker held Orbie when your hold is full), and everything else is **auto-sold** for treats.
 - **🪨 Auto-Battle** — You **can't tap the rock**. Your Orbies do the work: they take turns striking it for DPS, **up to 8 at a time**. Each floor has **10 rocks**, and rock HP **doubles every floor**.
 - **⚔️ Floors & Bosses** — Clear a floor's 10 rocks, then tap **Fight Boss** for a timed **30-second** fight (Boss 1 = **1000 HP**, scaling each floor). Win and **Descend** to the next floor for an orb payout — **5 orbs per rock (≈50 on floor 1) and +10% each deeper floor**. Run out of time, or hit **Give Up**, and you drop back to the floor to farm and level up before trying again.
 - **🧺 Hold & Sell** — You can hold **3 Orbies to start** (expandable up to 8 with gold). Sell duplicates for **treats**, the currency used to level up your keepers. Every hatch lets you **Keep** the new Orbie or **Sell** it for treats — and you can keep opening even when your hold is full, choosing to **Sell** the new one or **Replace** one you're holding (the replaced Orbie is sold for treats too). The replace list color-codes every held Orbie against the new one — **green** = upgrade, **red** = downgrade, **blue** = same DPS — so you can see at a glance whether it's a good swap.

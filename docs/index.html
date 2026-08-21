@@ -72,7 +72,8 @@
   section { position: relative; z-index: 1; }
 
   /* ---- resource bar ---- */
-  .resbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px auto 8px; justify-content: center; }
+  .resbar { display: flex; flex-wrap: wrap; gap: 8px; margin: 0 auto; padding-bottom: 10px; justify-content: center; }
+  .resbar-wrap { padding-top: 2px; }
   .res {
     display: flex; align-items: center; gap: 8px;
     background: var(--panel); border: 1px solid var(--panel-brd);
@@ -261,6 +262,24 @@
   .reveal .pick-item .pn { font-weight: 800; font-size: .92rem; }
   .reveal .pick-item .psub { font-size: .72rem; color: var(--ink-soft); }
 
+  /* ---- auto-open menu ---- */
+  .automenu { position: fixed; inset: 0; z-index: 65; display: none; place-items: center; background: rgba(5,4,18,0.72); backdrop-filter: blur(4px); }
+  .automenu.show { display: grid; }
+  .am-card {
+    width: min(400px, 92vw); max-height: 88vh; overflow-y: auto;
+    background: var(--panel-2); border: 1px solid var(--panel-brd); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 20px;
+  }
+  .am-title { font-weight: 800; font-size: 1.2rem; text-align: center; }
+  .am-sub { color: var(--ink-soft); font-size: .8rem; text-align: center; margin: 8px auto 12px; line-height: 1.45; max-width: 340px; }
+  .am-quick { display: flex; gap: 8px; justify-content: center; margin-bottom: 10px; }
+  .am-list { display: grid; grid-template-columns: 1fr 1fr; gap: 5px 10px; margin-bottom: 12px; }
+  .am-row { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: 9px; cursor: pointer; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); }
+  .am-row input { width: 18px; height: 18px; accent-color: var(--violet); flex: none; }
+  .am-name { font-weight: 800; font-size: .8rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .am-status { text-align: center; font-size: .8rem; color: var(--ink-soft); font-weight: 700; min-height: 18px; margin-bottom: 12px; }
+  .am-actions { display: flex; gap: 8px; justify-content: center; }
+
   /* ---- toast ---- */
   .toast {
     position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
@@ -307,17 +326,18 @@
       <button class="btn small" id="reset" title="Clear saved progress">↺ Reset</button>
     </div>
   </div>
-</header>
-
-<section>
-  <div class="wrap">
-
+  <div class="wrap resbar-wrap">
     <div class="resbar">
       <div class="res gold"><span class="ico">🪙</span><div><div class="v" id="rGold">0</div><div class="k">Gold</div></div></div>
       <div class="res treat"><span class="ico">🍬</span><div><div class="v" id="rTreats">0</div><div class="k">Treats</div></div></div>
       <div class="res orb"><span class="ico">🔮</span><div><div class="v" id="rOrbs">0</div><div class="k">Orbs</div></div></div>
       <div class="res hold"><span class="ico">🧺</span><div><div class="v" id="rHold">0/3</div><div class="k">Held</div></div></div>
     </div>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
 
     <div class="arena">
       <div class="arena-top">
@@ -343,6 +363,7 @@
 
     <div class="actions">
       <button class="btn primary" id="openOrb">🔮 Open Orb <span class="cost" id="openHint"></span></button>
+      <button class="btn" id="autoOpen">⚙️ Auto-Open</button>
       <button class="btn" id="buyOrb">➕ Buy Orb <span class="cost" id="buyCost"></span></button>
       <button class="btn" id="expandHold">🧺 Expand Hold <span class="cost" id="expandCost"></span></button>
     </div>
@@ -367,6 +388,23 @@
     <div class="rstats" id="revealStats"></div>
     <div class="reveal-msg" id="revealMsg"></div>
     <div class="reveal-actions" id="revealActions"></div>
+  </div>
+</div>
+
+<div class="automenu" id="autoMenu">
+  <div class="am-card">
+    <div class="am-title">⚙️ Auto-Open</div>
+    <div class="am-sub">Opens your orbs one at a time. Checked rarities are <b>kept</b> (replacing a weaker held Orbie when your hold is full); unchecked rarities are <b>auto-sold</b> for treats.</div>
+    <div class="am-quick">
+      <button class="btn small" id="amAll">✓ Keep all</button>
+      <button class="btn small" id="amNone">✗ Keep none</button>
+    </div>
+    <div class="am-list" id="amList"></div>
+    <div class="am-status" id="amStatus"></div>
+    <div class="am-actions">
+      <button class="btn primary" id="amRun">▶ Auto-Open</button>
+      <button class="btn" id="amClose">Close</button>
+    </div>
   </div>
 </div>
 
@@ -503,6 +541,7 @@
     return {
       gold: 0, treats: 0, orbs: 5, orbsBought: 0,
       holdCap: 3, roster: [], pending: null, nid: 1,
+      autoKeep: sanitizeAutoKeep(null),
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0
@@ -524,6 +563,7 @@
           state.nid = Math.max(1, p.nid | 0);
           state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
           state.pending = (p.pending && sanitizeOrbie(p.pending)) ? p.pending : null;
+          state.autoKeep = sanitizeAutoKeep(p.autoKeep);
           state.floor = Math.max(1, p.floor | 0);
           state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
@@ -549,6 +589,13 @@
     ob.p = SPECIES[ob.si].p; ob.n = SPECIES[ob.si].n; ob.e = SPECIES[ob.si].e;
     if (typeof ob.id !== "number") ob.id = nextId++;
     return true;
+  }
+
+  // Per-rarity keep flags for Auto-Open (default: keep everything).
+  function sanitizeAutoKeep(a) {
+    var out = [];
+    for (var i = 0; i < RARITIES.length; i++) out[i] = (a && typeof a[i] === "boolean") ? a[i] : true;
+    return out;
   }
 
   var saveTimer = null;
@@ -582,6 +629,14 @@
     emptyNote: document.getElementById("emptyNote"),
     openOrb: document.getElementById("openOrb"),
     openHint: document.getElementById("openHint"),
+    autoOpen: document.getElementById("autoOpen"),
+    autoMenu: document.getElementById("autoMenu"),
+    amList: document.getElementById("amList"),
+    amStatus: document.getElementById("amStatus"),
+    amRun: document.getElementById("amRun"),
+    amClose: document.getElementById("amClose"),
+    amAll: document.getElementById("amAll"),
+    amNone: document.getElementById("amNone"),
     buyOrb: document.getElementById("buyOrb"),
     buyCost: document.getElementById("buyCost"),
     expandHold: document.getElementById("expandHold"),
@@ -1126,7 +1181,7 @@
   }
 
   function doOpenOrb() {
-    if (state.pending) return; // a hatch decision is already open
+    if (autoOpening || state.pending) return; // busy with auto-open or a hatch decision
     if (state.orbs <= 0) { toast("No orbs to open — buy one with gold or clear a boss."); return; }
     state.orbs -= 1;
     state.pending = makeOrbie();
@@ -1152,6 +1207,111 @@
     renderAll();
     toast("Hold expanded to " + state.holdCap + " Orbies!");
     saveSoon();
+  }
+
+  /* ---- Auto-Open ---- */
+  var autoOpening = false, autoOpenTimer = null, autoStats = { kept: 0, sold: 0, replaced: 0 };
+
+  function weakestHeld() {
+    var w = null, wd = Infinity;
+    for (var i = 0; i < state.roster.length; i++) {
+      var d = orbieDps(state.roster[i]);
+      if (d < wd) { wd = d; w = state.roster[i]; }
+    }
+    return w;
+  }
+
+  function buildAmList() {
+    el.amList.innerHTML = "";
+    for (var i = 0; i < RARITIES.length; i++) {
+      (function (r) {
+        var row = document.createElement("label");
+        row.className = "am-row";
+        var cb = document.createElement("input");
+        cb.type = "checkbox"; cb.checked = !!state.autoKeep[r];
+        cb.addEventListener("change", function () { state.autoKeep[r] = cb.checked; saveSoon(); });
+        var name = document.createElement("span");
+        name.className = "am-name"; name.textContent = RARITIES[r]; name.style.color = RARITY_COLORS[r];
+        row.appendChild(cb); row.appendChild(name);
+        el.amList.appendChild(row);
+      })(i);
+    }
+  }
+
+  function setAllAutoKeep(v) {
+    for (var i = 0; i < state.autoKeep.length; i++) state.autoKeep[i] = v;
+    buildAmList(); saveSoon();
+  }
+
+  function updateAutoStatus(done) {
+    var s = autoStats;
+    el.amStatus.textContent = (done ? "Done — " : "") +
+      "orbs left: " + fmt(state.orbs) + " · kept " + s.kept + " · replaced " + s.replaced + " · sold " + s.sold;
+  }
+
+  function autoOpenStep() {
+    if (!autoOpening) return;
+    if (state.orbs <= 0) { stopAutoOpen(); return; }
+    state.orbs -= 1;
+    var ob = makeOrbie();
+    var r = rarityOf(ob);
+    if (state.autoKeep[r]) {
+      if (state.roster.length < state.holdCap) {
+        ob._new = true; state.roster.push(ob); timers[ob.id] = Date.now(); autoStats.kept++;
+      } else {
+        var w = weakestHeld();
+        if (w && orbieDps(ob) > orbieDps(w)) {
+          var idx = state.roster.indexOf(w);
+          state.treats += sellValue(w);
+          delete timers[w.id];
+          ob._new = true;
+          state.roster.splice(idx, 1, ob);
+          timers[ob.id] = Date.now();
+          autoStats.replaced++;
+        } else {
+          state.treats += sellValue(ob); autoStats.sold++; // keeper rarity but no room & not an upgrade
+        }
+      }
+    } else {
+      state.treats += sellValue(ob); autoStats.sold++; // unchecked rarity -> auto-sell
+    }
+    renderAll();
+    updateAutoStatus();
+    saveSoon();
+  }
+
+  function startAutoOpen() {
+    if (autoOpening) return;
+    if (state.pending) { toast("Resolve the current hatch first."); return; }
+    if (state.orbs <= 0) { toast("No orbs to auto-open."); return; }
+    autoOpening = true;
+    autoStats = { kept: 0, sold: 0, replaced: 0 };
+    el.amRun.textContent = "⏹ Stop";
+    el.amRun.classList.remove("primary"); el.amRun.classList.add("danger");
+    updateAutoStatus();
+    autoOpenTimer = setInterval(autoOpenStep, 200);
+  }
+
+  function stopAutoOpen() {
+    if (autoOpenTimer) { clearInterval(autoOpenTimer); autoOpenTimer = null; }
+    var was = autoOpening;
+    autoOpening = false;
+    el.amRun.textContent = "▶ Auto-Open";
+    el.amRun.classList.remove("danger"); el.amRun.classList.add("primary");
+    if (was) updateAutoStatus(true);
+  }
+
+  function openAutoMenu() {
+    if (state.pending) { toast("Resolve the current hatch first."); return; }
+    buildAmList();
+    autoStats = { kept: 0, sold: 0, replaced: 0 };
+    updateAutoStatus();
+    el.autoMenu.classList.add("show");
+  }
+
+  function closeAutoMenu() {
+    stopAutoOpen();
+    el.autoMenu.classList.remove("show");
   }
 
   function doLevelUp(ob) {
@@ -1199,6 +1359,12 @@
   el.openOrb.addEventListener("click", doOpenOrb);
   el.buyOrb.addEventListener("click", doBuyOrb);
   el.expandHold.addEventListener("click", doExpandHold);
+  el.autoOpen.addEventListener("click", openAutoMenu);
+  el.amClose.addEventListener("click", closeAutoMenu);
+  el.amAll.addEventListener("click", function () { setAllAutoKeep(true); });
+  el.amNone.addEventListener("click", function () { setAllAutoKeep(false); });
+  el.amRun.addEventListener("click", function () { if (autoOpening) stopAutoOpen(); else startAutoOpen(); });
+  el.autoMenu.addEventListener("click", function (e) { if (e.target === el.autoMenu) closeAutoMenu(); });
   el.giveUpBtn.addEventListener("click", giveUp);
   el.progressBtn.addEventListener("click", function () {
     if (state.phase === "gate") startBoss();
