@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#1a1030" />
+  <meta name="description" content="Orbies — an idle & gacha RPG. Break rocks, earn coins, summon over 100 tiny creatures, farm crops, and climb the Arena leagues." />
+  <title>Orbies — Idle Gacha RPG</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;600;700;800&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%94%AE%3C/text%3E%3C/svg%3E" />
+</head>
+<body>
+  <!-- Loading / boot screen -->
+  <div id="boot">
+    <div class="boot-orb">🔮</div>
+    <div class="boot-title">ORBIES</div>
+    <div class="boot-sub">Idle &amp; Gacha RPG</div>
+  </div>
+
+  <!-- Top resource bar -->
+  <header id="topbar">
+    <div class="brand">
+      <span class="brand-orb">🔮</span>
+      <span class="brand-name">ORBIES</span>
+    </div>
+    <div class="resources" id="resources">
+      <div class="res" title="Coins — earned by breaking rocks"><span class="res-ico">🪙</span><span id="r-coins">0</span></div>
+      <div class="res" title="Gems — premium currency from bosses &amp; arena"><span class="res-ico">💎</span><span id="r-gems">0</span></div>
+      <div class="res" title="Food — grown in your garden"><span class="res-ico">🌽</span><span id="r-food">0</span></div>
+      <div class="res" title="Jewelry Dust — melt gear to earn it"><span class="res-ico">✨</span><span id="r-dust">0</span></div>
+      <div class="res" title="Trophies — win them in the Arena"><span class="res-ico">🏆</span><span id="r-trophies">0</span></div>
+    </div>
+    <button id="menu-btn" class="icon-btn" title="Menu">⚙️</button>
+  </header>
+
+  <!-- Power / floor strip -->
+  <div id="powerstrip">
+    <div class="ps-item"><span class="ps-label">POWER</span><span class="ps-val" id="ps-power">0</span></div>
+    <div class="ps-item"><span class="ps-label">DPS</span><span class="ps-val" id="ps-dps">0</span></div>
+    <div class="ps-item"><span class="ps-label">FLOOR</span><span class="ps-val" id="ps-floor">1</span></div>
+    <div class="ps-item"><span class="ps-label">ORBIES</span><span class="ps-val" id="ps-collection">0</span></div>
+  </div>
+
+  <!-- Main content panels -->
+  <main id="content">
+    <!-- MINE -->
+    <section class="panel active" id="panel-mine">
+      <div class="floor-head">
+        <div>
+          <div class="floor-name" id="floor-name">The Shallow Caves</div>
+          <div class="floor-sub" id="floor-sub">Floor 1</div>
+        </div>
+        <div class="floor-nav">
+          <button id="floor-prev" class="mini-btn" title="Previous floor">◀</button>
+          <button id="floor-next" class="mini-btn" title="Deepest reached">▶</button>
+        </div>
+      </div>
+
+      <div class="rock-stage">
+        <div class="boss-timer" id="boss-timer"></div>
+        <button id="rock" class="rock" aria-label="Break the rock">
+          <span class="rock-emoji" id="rock-emoji">🪨</span>
+        </button>
+        <div class="rock-hp-wrap">
+          <div class="rock-hp-bar"><div class="rock-hp-fill" id="rock-hp-fill"></div></div>
+          <div class="rock-hp-text" id="rock-hp-text">0 / 0</div>
+        </div>
+        <div class="floor-progress">
+          <div class="fp-bar"><div class="fp-fill" id="fp-fill"></div></div>
+          <div class="fp-text" id="fp-text">0 / 10 cleared</div>
+        </div>
+      </div>
+
+      <div class="tap-hint" id="tap-hint">Tap the rock to mine! Your Orbies auto-mine too. 💥</div>
+    </section>
+
+    <!-- SUMMON -->
+    <section class="panel" id="panel-summon">
+      <h2 class="panel-title">🔮 Summoning Altar</h2>
+      <p class="panel-desc">Spend coins or gems to summon Orbies. Duplicates become <b>shards</b> that level up that Orbie.</p>
+      <div class="summon-cards">
+        <div class="summon-card">
+          <div class="sc-title">Single Pull</div>
+          <div class="sc-cost"><span>🪙</span> <span id="summon1-cost">100</span></div>
+          <button class="btn primary" id="summon-1">Summon ×1</button>
+        </div>
+        <div class="summon-card gold">
+          <div class="sc-title">Mega Pull ×10</div>
+          <div class="sc-cost"><span>💎</span> <span id="summon10-cost">10</span></div>
+          <div class="sc-note">Guaranteed Rare+</div>
+          <button class="btn gold-btn" id="summon-10">Summon ×10</button>
+        </div>
+      </div>
+      <div class="odds" id="odds"></div>
+      <div class="summon-result" id="summon-result"></div>
+    </section>
+
+    <!-- ORBIES (collection) -->
+    <section class="panel" id="panel-orbies">
+      <h2 class="panel-title">🐣 Your Orbies</h2>
+      <div class="orbies-filter" id="orbies-filter"></div>
+      <div class="orbies-grid" id="orbies-grid"></div>
+      <div class="empty-note" id="orbies-empty">You haven't summoned any Orbies yet. Visit the Summoning Altar!</div>
+    </section>
+
+    <!-- GARDEN -->
+    <section class="panel" id="panel-garden">
+      <h2 class="panel-title">🌱 Garden</h2>
+      <p class="panel-desc">Plant crops, wait for them to grow, and harvest <b>🌽 Food</b>. Feed an Orbie to permanently boost its power.</p>
+      <div class="seed-picker" id="seed-picker"></div>
+      <div class="garden-grid" id="garden-grid"></div>
+      <button class="btn" id="expand-garden">Expand Garden — 🪙 <span id="expand-cost">500</span></button>
+    </section>
+
+    <!-- ARENA -->
+    <section class="panel" id="panel-arena">
+      <h2 class="panel-title">⚔️ Arena</h2>
+      <p class="panel-desc">Send your Orbies to battle. Win 🏆 trophies, 💎 gems, and gear. Tickets refill over time.</p>
+      <div class="arena-status">
+        <div class="tickets">Tickets: <b id="arena-tickets">5</b> / 5 <span class="ticket-timer" id="ticket-timer"></span></div>
+        <div class="league-badge" id="league-badge">Bronze League</div>
+      </div>
+      <div class="arena-opponent" id="arena-opponent"></div>
+      <button class="btn primary big" id="arena-fight">Find Match &amp; Fight</button>
+      <div class="battle-log" id="battle-log"></div>
+      <h3 class="sub-title">🏅 Weekly Leaderboard <span class="reset-note" id="league-reset"></span></h3>
+      <div class="leaderboard" id="leaderboard"></div>
+    </section>
+
+    <!-- COLLECTION (packs / rings / totems) -->
+    <section class="panel" id="panel-collection">
+      <h2 class="panel-title">💍 Collection</h2>
+      <div class="tabs-sub" id="col-subtabs">
+        <button class="subtab active" data-sub="rings">Rings</button>
+        <button class="subtab" data-sub="totems">Totems</button>
+        <button class="subtab" data-sub="packs">Packs</button>
+      </div>
+
+      <div class="subpanel active" id="sub-rings">
+        <p class="panel-desc">Equip up to <b id="ring-slots">2</b> rings for permanent bonuses. Melt spare rings into <b>✨ dust</b>, then use dust to upgrade equipped rings.</p>
+        <div class="equipped-rings" id="equipped-rings"></div>
+        <div class="ring-inventory" id="ring-inventory"></div>
+        <div class="empty-note" id="rings-empty">No rings yet — win them in the Arena or open packs.</div>
+      </div>
+
+      <div class="subpanel" id="sub-totems">
+        <p class="panel-desc">Collect totem cards. Complete a <b>set</b> to unlock a permanent global bonus.</p>
+        <div class="totem-sets" id="totem-sets"></div>
+      </div>
+
+      <div class="subpanel" id="sub-packs">
+        <p class="panel-desc">Open packs for totem cards and rings.</p>
+        <div class="pack-cards">
+          <div class="summon-card">
+            <div class="sc-title">Totem Pack</div>
+            <div class="sc-cost"><span>💎</span> <span>15</span></div>
+            <div class="sc-note">3 totem cards</div>
+            <button class="btn primary" id="open-totem-pack">Open</button>
+          </div>
+          <div class="summon-card gold">
+            <div class="sc-title">Jewel Pack</div>
+            <div class="sc-cost"><span>💎</span> <span>25</span></div>
+            <div class="sc-note">2 rings</div>
+            <button class="btn gold-btn" id="open-ring-pack">Open</button>
+          </div>
+        </div>
+        <div class="summon-result" id="pack-result"></div>
+      </div>
+    </section>
+
+    <!-- UPGRADES -->
+    <section class="panel" id="panel-upgrades">
+      <h2 class="panel-title">⛏️ Upgrades</h2>
+      <p class="panel-desc">Spend coins to grow stronger — forever.</p>
+      <div class="upgrade-list" id="upgrade-list"></div>
+    </section>
+  </main>
+
+  <!-- Bottom nav -->
+  <nav id="bottomnav">
+    <button class="nav-btn active" data-panel="mine"><span class="nav-ico">⛏️</span><span class="nav-lbl">Mine</span></button>
+    <button class="nav-btn" data-panel="summon"><span class="nav-ico">🔮</span><span class="nav-lbl">Summon</span></button>
+    <button class="nav-btn" data-panel="orbies"><span class="nav-ico">🐣</span><span class="nav-lbl">Orbies</span></button>
+    <button class="nav-btn" data-panel="garden"><span class="nav-ico">🌱</span><span class="nav-lbl">Garden</span></button>
+    <button class="nav-btn" data-panel="arena"><span class="nav-ico">⚔️</span><span class="nav-lbl">Arena</span></button>
+    <button class="nav-btn" data-panel="collection"><span class="nav-ico">💍</span><span class="nav-lbl">Collect</span></button>
+    <button class="nav-btn" data-panel="upgrades"><span class="nav-ico">⚙️</span><span class="nav-lbl">Upgrade</span></button>
+  </nav>
+
+  <!-- Toast host -->
+  <div id="toasts"></div>
+
+  <!-- Floating damage numbers host -->
+  <div id="floaters"></div>
+
+  <!-- Menu modal -->
+  <div class="modal-backdrop" id="menu-modal">
+    <div class="modal">
+      <h3>⚙️ Menu</h3>
+      <div class="menu-stats" id="menu-stats"></div>
+      <button class="btn" id="btn-save">💾 Save Now</button>
+      <button class="btn" id="btn-export">📤 Export Save</button>
+      <button class="btn" id="btn-import">📥 Import Save</button>
+      <button class="btn danger" id="btn-reset">🗑️ Hard Reset</button>
+      <button class="btn ghost" id="btn-close-menu">Close</button>
+      <div class="version">Orbies v1.0 · autosaves every 15s</div>
+    </div>
+  </div>
+
+  <!-- Offline earnings modal -->
+  <div class="modal-backdrop" id="offline-modal">
+    <div class="modal">
+      <h3>😴 Welcome back!</h3>
+      <div id="offline-body"></div>
+      <button class="btn primary" id="btn-collect-offline">Collect</button>
+    </div>
+  </div>
+
+  <script src="game.js"></script>
+</body>
+</html>
