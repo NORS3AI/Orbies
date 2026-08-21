@@ -612,15 +612,15 @@
      ============================================================ */
   // Rarities, lowest -> highest. Evolving lifts an Orbie +2 tiers per stage.
   var RARITIES = [
-    "Trash", "Common", "Uncommon", "Magic", "Rare", "Epic", "Legendary",
-    "Esoteric", "Mythic", "Relic", "Untouched", "Phase-bound", "Light-sworn", "Void-born"
+    "Trash", "Common", "Uncommon", "Rare", "Epic", "Legendary",
+    "Mythic", "Relic", "Phasebound", "Lightsworn", "Voidborn"
   ];
   var RARITY_COLORS = [
-    "#8b8b96", "#c3ccda", "#4ee0a0", "#58c9ff", "#4f7cff", "#a855f7", "#ffce54",
-    "#ff8a3d", "#ff5db1", "#ff4d4d", "#e7f0ff", "#7cf6ff", "#fff2a8", "#c07bff"
+    "#8b8b96", "#ffffff", "#4ade80", "#4f8cff", "#8a2be2", "#ff9500",
+    "#ff5db1", "#ff3b3b", "#2dd4bf", "#ffe14d", "#c9a0ff"
   ];
-  var RARITY_WEIGHTS = [30, 26, 18, 11, 6, 3.4, 2, 1.1, 0.6, 0.35, 0.18, 0.08, 0.03, 0.01];
-  var TOP_RARITY = RARITIES.length - 1; // 13 = Void-born
+  var RARITY_WEIGHTS = [30, 26, 18, 10, 6, 3.4, 1.8, 0.9, 0.4, 0.18, 0.05];
+  var TOP_RARITY = RARITIES.length - 1; // 10 = Voidborn
 
   // Species are cosmetic (name + emoji + small power multiplier).
   var SPECIES = [

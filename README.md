@@ -25,14 +25,14 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 
 ### 🏅 Rarities (low → high)
 
-`Trash · Common · Uncommon · Magic · Rare · Epic · Legendary · Esoteric · Mythic · Relic · Untouched · Phase-bound · Light-sworn · Void-born`
+`Trash · Common · Uncommon · Rare · Epic · Legendary · Mythic · Relic · Phasebound · Lightsworn · Voidborn`
 
 ### 🔁 The core loop
 
 1. **Hatch** — open orbs to collect new Orbies.
 2. **Battle & Descend** — Orbies auto-clear each rock; tap **Descend +5** to bank orbs and advance, then a timed boss to reach the next floor.
 3. **Sell** — melt down duplicates into treats.
-4. **Level & Evolve** — pour treats into your best Orbies and evolve them toward Void-born.
+4. **Level & Evolve** — pour treats into your best Orbies and evolve them toward Voidborn.
 
 ## 🗂️ Project structure
 
