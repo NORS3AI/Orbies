@@ -280,6 +280,22 @@
   .am-status { text-align: center; font-size: .8rem; color: var(--ink-soft); font-weight: 700; min-height: 18px; margin-bottom: 12px; }
   .am-actions { display: flex; gap: 8px; justify-content: center; }
 
+  /* ---- settings menu ---- */
+  .settings { position: fixed; inset: 0; z-index: 65; display: none; place-items: center; background: rgba(5,4,18,0.72); backdrop-filter: blur(4px); }
+  .settings.show { display: grid; }
+  .set-card {
+    width: min(400px, 92vw); max-height: 88vh; overflow-y: auto;
+    background: var(--panel-2); border: 1px solid var(--panel-brd); border-radius: 20px;
+    box-shadow: var(--shadow); padding: 20px;
+  }
+  .set-title { font-weight: 800; font-size: 1.2rem; text-align: center; margin-bottom: 14px; }
+  .set-row { display: flex; align-items: center; gap: 10px; padding: 10px 12px; border-radius: 10px; cursor: pointer; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); font-weight: 700; }
+  .set-row input { width: 18px; height: 18px; accent-color: var(--violet); }
+  .dev-panel { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+  .dev-group { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 10px; padding: 8px 10px; }
+  .dev-label { font-weight: 800; font-size: .82rem; min-width: 68px; }
+  .set-actions { display: flex; gap: 8px; justify-content: center; margin-top: 16px; }
+
   /* ---- toast ---- */
   .toast {
     position: fixed; left: 50%; bottom: 22px; transform: translateX(-50%) translateY(20px);
@@ -323,7 +339,7 @@
       Orbies
     </div>
     <div class="nav-right">
-      <button class="btn small" id="reset" title="Clear saved progress">↺ Reset</button>
+      <button class="btn small" id="settingsBtn" title="Settings">⚙️ Settings</button>
     </div>
   </div>
   <div class="wrap resbar-wrap">
@@ -363,7 +379,7 @@
 
     <div class="actions">
       <button class="btn primary" id="openOrb">🔮 Open Orb <span class="cost" id="openHint"></span></button>
-      <button class="btn" id="autoOpen">⚙️ Auto-Open</button>
+      <button class="btn" id="autoOpen">🔁 Auto-Open</button>
       <button class="btn" id="buyOrb">➕ Buy Orb <span class="cost" id="buyCost"></span></button>
       <button class="btn" id="expandHold">🧺 Expand Hold <span class="cost" id="expandCost"></span></button>
     </div>
@@ -404,6 +420,40 @@
     <div class="am-actions">
       <button class="btn primary" id="amRun">▶ Auto-Open</button>
       <button class="btn" id="amClose">Close</button>
+    </div>
+  </div>
+</div>
+
+<div class="settings" id="settingsMenu">
+  <div class="set-card">
+    <div class="set-title">⚙️ Settings</div>
+
+    <label class="set-row"><input type="checkbox" id="devToggle" /> <span>🧪 Dev mode</span></label>
+
+    <div class="dev-panel" id="devPanel" style="display:none;">
+      <div class="dev-group">
+        <span class="dev-label">🔮 Orbs</span>
+        <button class="btn small" data-add="orbs" data-amt="10">+10</button>
+        <button class="btn small" data-add="orbs" data-amt="100">+100</button>
+        <button class="btn small" data-add="orbs" data-amt="1000">+1000</button>
+      </div>
+      <div class="dev-group">
+        <span class="dev-label">🪙 Gold</span>
+        <button class="btn small" data-add="gold" data-amt="1000">+1k</button>
+        <button class="btn small" data-add="gold" data-amt="10000">+10k</button>
+        <button class="btn small" data-add="gold" data-amt="100000">+100k</button>
+      </div>
+      <div class="dev-group">
+        <span class="dev-label">🍬 Treats</span>
+        <button class="btn small" data-add="treats" data-amt="1000">+1k</button>
+        <button class="btn small" data-add="treats" data-amt="10000">+10k</button>
+        <button class="btn small" data-add="treats" data-amt="100000">+100k</button>
+      </div>
+    </div>
+
+    <div class="set-actions">
+      <button class="btn danger" id="wipeSave">🗑️ Wipe Save</button>
+      <button class="btn" id="setClose">Close</button>
     </div>
   </div>
 </div>
@@ -541,7 +591,7 @@
     return {
       gold: 0, treats: 0, orbs: 5, orbsBought: 0,
       holdCap: 3, roster: [], pending: null, nid: 1,
-      autoKeep: sanitizeAutoKeep(null),
+      autoKeep: sanitizeAutoKeep(null), devMode: false,
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0
@@ -564,6 +614,7 @@
           state.roster = Array.isArray(p.roster) ? p.roster.filter(sanitizeOrbie).slice(0, MAX_ATTACKERS) : [];
           state.pending = (p.pending && sanitizeOrbie(p.pending)) ? p.pending : null;
           state.autoKeep = sanitizeAutoKeep(p.autoKeep);
+          state.devMode = !!p.devMode;
           state.floor = Math.max(1, p.floor | 0);
           state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
@@ -637,6 +688,12 @@
     amClose: document.getElementById("amClose"),
     amAll: document.getElementById("amAll"),
     amNone: document.getElementById("amNone"),
+    settingsBtn: document.getElementById("settingsBtn"),
+    settingsMenu: document.getElementById("settingsMenu"),
+    devToggle: document.getElementById("devToggle"),
+    devPanel: document.getElementById("devPanel"),
+    wipeSave: document.getElementById("wipeSave"),
+    setClose: document.getElementById("setClose"),
     buyOrb: document.getElementById("buyOrb"),
     buyCost: document.getElementById("buyCost"),
     expandHold: document.getElementById("expandHold"),
@@ -872,11 +929,12 @@
     el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
 
     if (state.phase === "rocks") {
-      // rock cleared — pause on the per-rock Descend reward (don't auto-advance)
+      // rock cleared — a Descend reward is now available, but the Orbies keep
+      // beating this rock for gold until the player chooses to Descend.
       state.phase = "descend";
-      state.rockHp = 0;
+      state.rockHp = currentRockMax();
     } else {
-      // 'gate' or 'cleared' — keep farming the last rock for gold
+      // 'descend' / 'gate' / 'cleared' — keep farming the current rock for gold
       state.rockHp = currentRockMax();
     }
     renderStats();
@@ -986,10 +1044,8 @@
       }
       updateHpBar();
       updateTimer(now);
-    } else if (state.phase === "descend") {
-      // rock cleared — Orbies idle until the player taps Descend
-      updateHpBar();
     } else {
+      // 'rocks' / 'descend' / 'gate' / 'cleared' — Orbies keep beating the rock
       for (var j = 0; j < atk.length; j++) {
         var o2 = atk[j];
         if (timers[o2.id] == null) timers[o2.id] = now + j * 150;
@@ -1034,7 +1090,7 @@
     // floor tag
     var tag = "Floor " + state.floor + " · ";
     if (ph === "rocks") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR;
-    else if (ph === "descend") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR + " cleared";
+    else if (ph === "descend") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR + " · farming";
     else if (ph === "gate") tag += "Boss ready";
     else if (ph === "boss") tag += "⚔️ BOSS";
     else tag += "Cleared ✓";
@@ -1374,11 +1430,34 @@
   }
 
   function doReset() {
-    if (!confirm("Reset all progress? This clears your Orbies, gold, treats, and floor.")) return;
+    if (!confirm("Wipe all progress? This clears your Orbies, gold, treats, and floor.")) return;
     try { localStorage.removeItem(SAVE_KEY); } catch (e) {}
     load();
     renderAll();
-    toast("Progress reset. Open your 5 starter orbs!");
+    toast("Save wiped. Open your 5 starter orbs!");
+  }
+
+  /* ---- Settings + Dev mode ---- */
+  function openSettings() {
+    el.devToggle.checked = !!state.devMode;
+    el.devPanel.style.display = state.devMode ? "" : "none";
+    el.settingsMenu.classList.add("show");
+  }
+  function closeSettings() { el.settingsMenu.classList.remove("show"); }
+  function toggleDev() {
+    state.devMode = el.devToggle.checked;
+    el.devPanel.style.display = state.devMode ? "" : "none";
+    saveSoon();
+  }
+  function addResource(kind, amt) {
+    if (!amt) return;
+    if (kind === "orbs") state.orbs += amt;
+    else if (kind === "gold") state.gold += amt;
+    else if (kind === "treats") state.treats += amt;
+    else return;
+    renderAll();
+    saveSoon();
+    toast("Dev: +" + fmt(amt) + " " + kind);
   }
 
   /* ============================================================
@@ -1399,7 +1478,16 @@
     else if (state.phase === "gate") startBoss();
     else if (state.phase === "cleared") nextFloor();
   });
-  document.getElementById("reset").addEventListener("click", doReset);
+  el.settingsBtn.addEventListener("click", openSettings);
+  el.setClose.addEventListener("click", closeSettings);
+  el.settingsMenu.addEventListener("click", function (e) { if (e.target === el.settingsMenu) closeSettings(); });
+  el.devToggle.addEventListener("change", toggleDev);
+  el.wipeSave.addEventListener("click", function () { doReset(); closeSettings(); });
+  el.devPanel.addEventListener("click", function (e) {
+    var b = e.target;
+    var kind = (b && b.getAttribute) ? b.getAttribute("data-add") : null;
+    if (kind) addResource(kind, parseInt(b.getAttribute("data-amt"), 10));
+  });
 
   load();
   renderAll();
