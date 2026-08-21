@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Orbies — Idle RPG &amp; Gacha Creature Collector</title>
+<meta name="description" content="Orbies is an addictive incremental idle & gacha game. Smash rocks, earn coins, summon over 100 tiny creatures, farm crops, and climb the arena leaderboards." />
+<meta name="theme-color" content="#0b0b1a" />
+
+<!-- Open Graph / social -->
+<meta property="og:type" content="website" />
+<meta property="og:title" content="Orbies — Idle RPG & Gacha Creature Collector" />
+<meta property="og:description" content="Break rocks, earn coins, and summon tiny creatures called Orbies that fight and idle for you." />
+<meta property="og:url" content="https://nors3ai.github.io/Orbies/" />
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ccircle cx='50' cy='52' r='34' fill='%237c5cff'/%3E%3Ccircle cx='38' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='62' cy='44' r='7' fill='%23fff'/%3E%3Ccircle cx='40' cy='45' r='3' fill='%23111'/%3E%3Ccircle cx='64' cy='45' r='3' fill='%23111'/%3E%3Cpath d='M40 64 Q50 72 60 64' stroke='%23111' stroke-width='4' fill='none' stroke-linecap='round'/%3E%3C/svg%3E" />
+
+<style>
+  :root {
+    --bg: #0b0b1a;
+    --bg-2: #12122b;
+    --panel: rgba(30, 28, 66, 0.55);
+    --panel-brd: rgba(140, 120, 255, 0.22);
+    --ink: #eef0ff;
+    --ink-soft: #b6b8dd;
+    --violet: #7c5cff;
+    --violet-2: #a98bff;
+    --gold: #ffce54;
+    --mint: #4ee0a0;
+    --pink: #ff77c8;
+    --sky: #58c9ff;
+    --shadow: 0 18px 50px rgba(0,0,0,0.45);
+    --font: 'Trebuchet MS', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  }
+
+  * { box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    margin: 0;
+    font-family: var(--font);
+    color: var(--ink);
+    background:
+      radial-gradient(1100px 700px at 12% -8%, rgba(124,92,255,0.30), transparent 60%),
+      radial-gradient(900px 620px at 92% 4%, rgba(88,201,255,0.18), transparent 55%),
+      radial-gradient(800px 700px at 50% 118%, rgba(255,119,200,0.16), transparent 55%),
+      linear-gradient(180deg, var(--bg), var(--bg-2));
+    background-attachment: fixed;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  a { color: var(--violet-2); }
+
+  .wrap { width: min(1100px, 92vw); margin: 0 auto; }
+
+  /* ---------- floating orbs background ---------- */
+  .field { position: fixed; inset: 0; pointer-events: none; z-index: 0; overflow: hidden; }
+  .field .orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(0.5px);
+    opacity: 0.55;
+    animation: drift linear infinite;
+  }
+  @keyframes drift {
+    0%   { transform: translateY(0) translateX(0) scale(1); }
+    50%  { transform: translateY(-40px) translateX(24px) scale(1.08); }
+    100% { transform: translateY(0) translateX(0) scale(1); }
+  }
+
+  /* ---------- top nav ---------- */
+  header.nav {
+    position: sticky; top: 0; z-index: 20;
+    backdrop-filter: blur(10px);
+    background: rgba(11, 11, 26, 0.62);
+    border-bottom: 1px solid var(--panel-brd);
+  }
+  .nav-in { display: flex; align-items: center; gap: 14px; padding: 14px 0; }
+  .brand { display: flex; align-items: center; gap: 12px; font-weight: 800; font-size: 1.25rem; letter-spacing: 0.5px; }
+  .brand .badge { width: 34px; height: 34px; }
+  .nav-links { margin-left: auto; display: flex; gap: 22px; font-weight: 600; font-size: 0.95rem; }
+  .nav-links a { color: var(--ink-soft); text-decoration: none; transition: color .2s; }
+  .nav-links a:hover { color: var(--ink); }
+  @media (max-width: 680px) { .nav-links { display: none; } }
+
+  /* ---------- hero ---------- */
+  section { position: relative; z-index: 1; }
+  .hero { padding: 68px 0 40px; text-align: center; }
+  .kicker {
+    display: inline-block;
+    padding: 6px 14px; border-radius: 999px;
+    background: rgba(124,92,255,0.16);
+    border: 1px solid var(--panel-brd);
+    color: var(--violet-2); font-weight: 700; font-size: 0.8rem;
+    letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 22px;
+  }
+  h1 {
+    margin: 0 0 14px; font-size: clamp(2.6rem, 7vw, 4.6rem); line-height: 1.02;
+    background: linear-gradient(120deg, #fff 0%, var(--violet-2) 45%, var(--sky) 100%);
+    -webkit-background-clip: text; background-clip: text; color: transparent;
+    letter-spacing: -1px;
+  }
+  .tag { color: var(--ink-soft); font-size: clamp(1rem, 2.4vw, 1.3rem); max-width: 620px; margin: 0 auto 30px; }
+  .cta-row { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 9px;
+    padding: 14px 26px; border-radius: 14px; font-weight: 800; font-size: 1rem;
+    text-decoration: none; border: 1px solid transparent; cursor: pointer;
+    transition: transform .15s ease, box-shadow .15s ease, background .2s;
+  }
+  .btn:hover { transform: translateY(-2px); }
+  .btn.primary { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; box-shadow: 0 12px 34px rgba(124,92,255,0.45); }
+  .btn.ghost { background: var(--panel); color: var(--ink); border-color: var(--panel-brd); }
+
+  /* ---------- play demo ---------- */
+  .demo {
+    margin: 46px auto 10px; max-width: 640px;
+    background: var(--panel); border: 1px solid var(--panel-brd);
+    border-radius: 24px; box-shadow: var(--shadow); padding: 26px 24px 30px;
+    backdrop-filter: blur(6px);
+  }
+  .demo h2 { margin: 0 0 4px; font-size: 1.15rem; }
+  .demo .sub { color: var(--ink-soft); font-size: 0.88rem; margin-bottom: 18px; }
+  .stats { display: flex; justify-content: center; gap: 26px; margin-bottom: 16px; flex-wrap: wrap; }
+  .stat { text-align: center; }
+  .stat .n { font-size: 1.7rem; font-weight: 800; }
+  .stat .n.gold { color: var(--gold); }
+  .stat .n.mint { color: var(--mint); }
+  .stat .l { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--ink-soft); }
+
+  .rock-stage { position: relative; height: 190px; display: grid; place-items: center; user-select: none; }
+  #rock {
+    font-size: 96px; cursor: pointer; line-height: 1;
+    transition: transform .06s ease; filter: drop-shadow(0 10px 18px rgba(0,0,0,0.5));
+  }
+  #rock:active { transform: scale(0.9) rotate(-3deg); }
+  .float-coin {
+    position: absolute; font-weight: 800; color: var(--gold); pointer-events: none;
+    animation: rise 0.9s ease-out forwards; font-size: 1.1rem; text-shadow: 0 2px 6px rgba(0,0,0,0.6);
+  }
+  @keyframes rise { from { opacity: 1; transform: translateY(0); } to { opacity: 0; transform: translateY(-70px); } }
+
+  .demo-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 6px; }
+  .mini {
+    padding: 11px 18px; border-radius: 12px; font-weight: 700; font-size: 0.92rem; cursor: pointer;
+    border: 1px solid var(--panel-brd); background: rgba(124,92,255,0.14); color: var(--ink);
+    transition: transform .12s, background .2s, opacity .2s;
+  }
+  .mini:hover { transform: translateY(-2px); background: rgba(124,92,255,0.26); }
+  .mini:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+  .collection { margin-top: 18px; min-height: 44px; display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+  .collection .creature {
+    font-size: 30px; animation: pop .4s ease; filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
+    cursor: default;
+  }
+  @keyframes pop { from { transform: scale(0); } to { transform: scale(1); } }
+  .hint { color: var(--ink-soft); font-size: 0.78rem; margin-top: 10px; }
+
+  /* ---------- features ---------- */
+  .features { padding: 60px 0 20px; }
+  .sec-title { text-align: center; margin: 0 0 8px; font-size: clamp(1.8rem, 4vw, 2.6rem); }
+  .sec-sub { text-align: center; color: var(--ink-soft); margin: 0 auto 40px; max-width: 560px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 20px; }
+  .card {
+    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 20px;
+    padding: 26px 24px; box-shadow: var(--shadow); backdrop-filter: blur(6px);
+    transition: transform .2s ease, border-color .2s;
+  }
+  .card:hover { transform: translateY(-6px); border-color: rgba(140,120,255,0.5); }
+  .card .ico { font-size: 2.2rem; margin-bottom: 12px; }
+  .card h3 { margin: 0 0 8px; font-size: 1.2rem; }
+  .card p { margin: 0; color: var(--ink-soft); font-size: 0.95rem; line-height: 1.55; }
+
+  /* ---------- loop ---------- */
+  .loop { padding: 56px 0; }
+  .loop-track { display: flex; align-items: stretch; gap: 12px; flex-wrap: wrap; justify-content: center; }
+  .loop-step {
+    flex: 1 1 180px; max-width: 220px; text-align: center;
+    background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 18px; padding: 22px 16px;
+  }
+  .loop-step .num {
+    width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; margin: 0 auto 12px;
+    font-weight: 800; background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff;
+  }
+  .loop-step h4 { margin: 0 0 6px; font-size: 1.05rem; }
+  .loop-step p { margin: 0; color: var(--ink-soft); font-size: 0.85rem; }
+
+  /* ---------- footer ---------- */
+  footer {
+    position: relative; z-index: 1;
+    border-top: 1px solid var(--panel-brd); margin-top: 40px; padding: 34px 0 46px; text-align: center;
+    color: var(--ink-soft); font-size: 0.9rem;
+  }
+  footer .foot-orbs { font-size: 1.6rem; margin-bottom: 12px; letter-spacing: 6px; }
+  footer a { color: var(--violet-2); text-decoration: none; }
+  footer a:hover { text-decoration: underline; }
+  .disclaimer { margin-top: 14px; font-size: 0.76rem; opacity: 0.7; max-width: 560px; margin-left: auto; margin-right: auto; }
+</style>
+</head>
+<body>
+
+<div class="field" id="field" aria-hidden="true"></div>
+
+<header class="nav">
+  <div class="wrap nav-in">
+    <div class="brand">
+      <svg class="badge" viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="52" r="34" fill="#7c5cff"/>
+        <circle cx="38" cy="44" r="7" fill="#fff"/>
+        <circle cx="62" cy="44" r="7" fill="#fff"/>
+        <circle cx="40" cy="45" r="3" fill="#111"/>
+        <circle cx="64" cy="45" r="3" fill="#111"/>
+        <path d="M40 64 Q50 72 60 64" stroke="#111" stroke-width="4" fill="none" stroke-linecap="round"/>
+      </svg>
+      Orbies
+    </div>
+    <nav class="nav-links">
+      <a href="#play">Play</a>
+      <a href="#features">Features</a>
+      <a href="#loop">Game Loop</a>
+      <a href="https://github.com/NORS3AI/Orbies">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<section class="hero">
+  <div class="wrap">
+    <span class="kicker">Idle · Gacha · Creature Collector</span>
+    <h1>Hatch. Idle. Conquer.</h1>
+    <p class="tag">Smash rocks, earn coins, and summon tiny creatures called <strong>Orbies</strong> that fight and idle for you — even while you're away.</p>
+    <div class="cta-row">
+      <a class="btn primary" href="#play">▶ Play the Teaser</a>
+      <a class="btn ghost" href="#features">Explore Features</a>
+    </div>
+  </div>
+</section>
+
+<section id="play">
+  <div class="wrap">
+    <div class="demo">
+      <h2>⛏️ Mining Bench</h2>
+      <div class="sub">Tap the rock to break it and collect gold. Save up, then summon an Orbie of your own.</div>
+
+      <div class="stats">
+        <div class="stat"><div class="n gold" id="coins">0</div><div class="l">Gold Coins</div></div>
+        <div class="stat"><div class="n mint" id="owned">0</div><div class="l">Orbies</div></div>
+        <div class="stat"><div class="n" id="depth">1</div><div class="l">Floor</div></div>
+      </div>
+
+      <div class="rock-stage">
+        <div id="rock" title="Smash me!" role="button" aria-label="Smash the rock">🪨</div>
+      </div>
+
+      <div class="demo-actions">
+        <button class="mini" id="summon">✨ Summon Orbie · 50</button>
+        <button class="mini" id="delve">🏰 Descend Floor · 100</button>
+        <button class="mini" id="reset" title="Clear your saved progress">↺ Reset</button>
+      </div>
+
+      <div class="collection" id="collection" aria-live="polite"></div>
+      <div class="hint">Your progress saves automatically in this browser. This is a bite-sized teaser of the full idle experience.</div>
+    </div>
+  </div>
+</section>
+
+<section class="features" id="features">
+  <div class="wrap">
+    <h2 class="sec-title">A Whole World in Your Pocket</h2>
+    <p class="sec-sub">Orbies blends incremental idle progression with gacha collecting, farming, and competitive leagues.</p>
+    <div class="grid">
+      <div class="card">
+        <div class="ico">⛏️</div>
+        <h3>Mining &amp; Combat</h3>
+        <p>Smash rocks to collect gold coins, push deeper into dungeon floors, and clear boss gates for bigger rewards.</p>
+      </div>
+      <div class="card">
+        <div class="ico">✨</div>
+        <h3>Summon &amp; Upgrade</h3>
+        <p>Pull and level up over 100 unique Orbies, each with distinct flavor text and traits to discover.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🌱</div>
+        <h3>Gardening &amp; Farming</h3>
+        <p>Grow crops in your garden to feed your creatures and fuel steady, satisfying progression.</p>
+      </div>
+      <div class="card">
+        <div class="ico">🏆</div>
+        <h3>Collections &amp; Leagues</h3>
+        <p>Compete in weekly leaderboards, equip rings, open totem-card packs, and melt duplicates into jewelry dust.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="loop" id="loop">
+  <div class="wrap">
+    <h2 class="sec-title">The Core Loop</h2>
+    <p class="sec-sub">Simple to start, deep to master — the incremental gameplay that keeps you coming back.</p>
+    <div class="loop-track">
+      <div class="loop-step"><div class="num">1</div><h4>Break Rocks</h4><p>Tap and idle to mine gold from the depths.</p></div>
+      <div class="loop-step"><div class="num">2</div><h4>Summon Orbies</h4><p>Spend gold to hatch new creatures.</p></div>
+      <div class="loop-step"><div class="num">3</div><h4>Build Power</h4><p>Level up, equip rings, and farm crops.</p></div>
+      <div class="loop-step"><div class="num">4</div><h4>Climb the Arena</h4><p>Battle for weekly leaderboard glory.</p></div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="foot-orbs">🟣 🔵 🟢 🟡 🩷</div>
+    <div><strong>Orbies</strong> — an incremental idle &amp; gacha adventure.</div>
+    <div style="margin-top:8px;">
+      <a href="https://github.com/NORS3AI/Orbies">View on GitHub</a> ·
+      <a href="https://nors3ai.github.io/Orbies/">nors3ai.github.io/Orbies</a>
+    </div>
+    <p class="disclaimer">Orbies is a fan-made project inspired by the idle-RPG genre. All trademarks belong to their respective owners.</p>
+  </div>
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  // ----- floating background orbs -----
+  var colors = ["#7c5cff", "#58c9ff", "#4ee0a0", "#ffce54", "#ff77c8", "#a98bff"];
+  var field = document.getElementById("field");
+  for (var i = 0; i < 18; i++) {
+    var o = document.createElement("div");
+    o.className = "orb";
+    var size = 20 + Math.floor(Math.random() * 90);
+    o.style.width = size + "px";
+    o.style.height = size + "px";
+    o.style.left = Math.random() * 100 + "vw";
+    o.style.top = Math.random() * 100 + "vh";
+    o.style.background = colors[Math.floor(Math.random() * colors.length)];
+    o.style.animationDuration = (8 + Math.random() * 12).toFixed(1) + "s";
+    o.style.animationDelay = (-Math.random() * 10).toFixed(1) + "s";
+    o.style.opacity = (0.12 + Math.random() * 0.28).toFixed(2);
+    field.appendChild(o);
+  }
+
+  // ----- tiny idle-game teaser -----
+  var CREATURES = ["🐣","🐤","🦊","🐸","🐰","🐥","🐲","🦄","🐙","🐢","🦉","🐧","🐼","🐨","🦋"];
+  var SUMMON_COST = 50, DELVE_COST = 100;
+
+  var state = { coins: 0, owned: [], depth: 1 };
+  try {
+    var saved = localStorage.getItem("orbies-teaser");
+    if (saved) {
+      var p = JSON.parse(saved);
+      if (p && typeof p === "object") {
+        state.coins = p.coins | 0;
+        state.owned = Array.isArray(p.owned) ? p.owned.slice(0, 60) : [];
+        state.depth = p.depth | 0 || 1;
+      }
+    }
+  } catch (e) { /* storage blocked — run fresh */ }
+
+  var elCoins = document.getElementById("coins");
+  var elOwned = document.getElementById("owned");
+  var elDepth = document.getElementById("depth");
+  var elCollection = document.getElementById("collection");
+  var rock = document.getElementById("rock");
+  var btnSummon = document.getElementById("summon");
+  var btnDelve = document.getElementById("delve");
+  var btnReset = document.getElementById("reset");
+
+  function save() {
+    try { localStorage.setItem("orbies-teaser", JSON.stringify(state)); } catch (e) {}
+  }
+
+  function render() {
+    elCoins.textContent = state.coins.toLocaleString();
+    elOwned.textContent = state.owned.length;
+    elDepth.textContent = state.depth;
+    btnSummon.disabled = state.coins < SUMMON_COST;
+    btnDelve.disabled = state.coins < DELVE_COST;
+    elCollection.innerHTML = "";
+    for (var i = 0; i < state.owned.length; i++) {
+      var c = document.createElement("span");
+      c.className = "creature";
+      c.textContent = state.owned[i];
+      elCollection.appendChild(c);
+    }
+  }
+
+  function floatCoin(amount) {
+    var f = document.createElement("div");
+    f.className = "float-coin";
+    f.textContent = "+" + amount;
+    f.style.left = (40 + Math.random() * 20) + "%";
+    f.style.top = "40%";
+    rock.parentNode.appendChild(f);
+    setTimeout(function () { f.remove(); }, 900);
+  }
+
+  function mine() {
+    var gain = state.depth; // deeper floors pay more
+    state.coins += gain;
+    floatCoin(gain);
+    render();
+    save();
+  }
+
+  rock.addEventListener("click", mine);
+  rock.addEventListener("keydown", function (e) {
+    if (e.key === "Enter" || e.key === " ") { e.preventDefault(); mine(); }
+  });
+  rock.tabIndex = 0;
+
+  btnSummon.addEventListener("click", function () {
+    if (state.coins < SUMMON_COST) return;
+    state.coins -= SUMMON_COST;
+    state.owned.push(CREATURES[Math.floor(Math.random() * CREATURES.length)]);
+    render();
+    save();
+  });
+
+  btnDelve.addEventListener("click", function () {
+    if (state.coins < DELVE_COST) return;
+    state.coins -= DELVE_COST;
+    state.depth += 1;
+    render();
+    save();
+  });
+
+  btnReset.addEventListener("click", function () {
+    state = { coins: 0, owned: [], depth: 1 };
+    render();
+    save();
+  });
+
+  render();
+})();
+</script>
+</body>
+</html>
