@@ -974,7 +974,7 @@
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0,
-      playerIcon: "", dex: [],
+      playerIcon: "", dex: [], autoDescend: false,
       farm: freshFarm(),
       arena: freshArena()
     };
@@ -1052,6 +1052,7 @@
           state.devFlags = !!p.devFlags;
           state.playerIcon = typeof p.playerIcon === "string" ? p.playerIcon : "";
           state.dex = Array.isArray(p.dex) ? p.dex.filter(function (x) { return typeof x === "number" && x >= 0 && x < SPECIES.length; }) : [];
+          state.autoDescend = !!p.autoDescend;
           state.tab = (["farm", "arena", "shop", "profile"].indexOf(p.tab) >= 0) ? p.tab : "dungeon";
           state.farm = sanitizeFarm(p.farm);
           state.arena = sanitizeArena(p.arena);
@@ -1437,6 +1438,7 @@
       // beating this rock for gold until the player chooses to Descend.
       state.phase = "descend";
       state.rockHp = currentRockMax();
+      if (state.autoDescend) { doDescend(true); return; }   // unlocked: auto-tap Descend
     } else {
       // 'descend' / 'gate' / 'cleared' — keep farming the current rock for gold
       state.rockHp = currentRockMax();
@@ -1447,7 +1449,8 @@
   }
 
   // Per-rock Descend: collect the orbs, then move to the next rock (or the boss).
-  function doDescend() {
+  // `auto` (from the Auto-Descend unlock) skips the toast so it isn't spammy.
+  function doDescend(auto) {
     if (state.phase !== "descend") return;
     var reward = perRockOrbs(state.floor);
     state.orbs += reward;
@@ -1461,7 +1464,7 @@
     renderStats();
     renderPhase();
     saveSoon();
-    toast("⬇️ +" + reward + " orbs 🔮");
+    if (!auto) toast("⬇️ +" + reward + " orbs 🔮");
   }
 
   function enterGate() {
@@ -2467,10 +2470,15 @@
   var SHOP_ITEMS = [
     { id: "orb1", ico: "🔮", name: "Buy 1 Orb", sub: "A single orb to open", cost: function () { return buyOrbCost(); }, buy: function () { state.orbs += 1; state.orbsBought += 1; } },
     { id: "orb10", ico: "🔮", name: "Buy 10 Orbs", sub: "A whole handful at once", cost: function () { return bulkOrbCost(10); }, buy: function () { state.orbs += 10; state.orbsBought += 10; } },
-    { id: "hold", ico: "🧺", name: "Expand Hold +1", sub: "Hold one more Orbie at a time", cost: function () { return expandCost(); }, maxed: function () { return state.holdCap >= MAX_ATTACKERS; }, buy: function () { state.holdCap += 1; } }
+    { id: "chest100", ico: "🎁", name: "Orb Chest", sub: "25 orbs", cost: function () { return 100; }, buy: function () { state.orbs += 25; } },
+    { id: "chest250", ico: "📦", name: "Big Orb Chest", sub: "60 orbs", cost: function () { return 250; }, buy: function () { state.orbs += 60; } },
+    { id: "chest500", ico: "🧰", name: "Huge Orb Chest", sub: "150 orbs", cost: function () { return 500; }, buy: function () { state.orbs += 150; } },
+    { id: "chest1000", ico: "💎", name: "Mega Orb Chest", sub: "500 orbs", cost: function () { return 1000; }, buy: function () { state.orbs += 500; } },
+    { id: "hold", ico: "🧺", name: "Expand Hold +1", sub: "Hold one more Orbie at a time", cost: function () { return expandCost(); }, maxed: function () { return state.holdCap >= MAX_ATTACKERS; }, buy: function () { state.holdCap += 1; } },
+    { id: "autodescend", ico: "⏬", name: "Auto-Descend", sub: "Auto-tap Descend to rush through floors", once: true, have: function () { return state.autoDescend; }, cost: function () { return 10000; }, buy: function () { state.autoDescend = true; } }
   ];
   function renderShop() {
-    el.shopList.innerHTML = SHOP_ITEMS.map(function (it) {
+    el.shopList.innerHTML = SHOP_ITEMS.filter(function (it) { return !(it.once && it.have()); }).map(function (it) {
       var maxed = it.maxed && it.maxed();
       var cost = maxed ? 0 : it.cost();
       var btn = maxed ? '<button class="btn small" disabled>MAX</button>'
@@ -2483,6 +2491,7 @@
     var it = null, i; for (i = 0; i < SHOP_ITEMS.length; i++) if (SHOP_ITEMS[i].id === id) it = SHOP_ITEMS[i];
     if (!it) return;
     if (it.maxed && it.maxed()) return;
+    if (it.once && it.have()) return;
     var cost = it.cost();
     if (state.gold < cost) { toast("Not enough gold (🪙" + fmt(cost) + ")."); return; }
     state.gold -= cost; it.buy();
