@@ -8,7 +8,12 @@ Orbies is an addictive incremental **idle & gacha** game where you break rocks, 
 
 ### 👉 https://nors3ai.github.io/Orbies/
 
-> **Note on the link:** GitHub Pages URLs are **case-sensitive**. The host `nors3ai` is always lowercase, and the path `Orbies` must match the repository name exactly (capital **O**). Use the link exactly as written above.
+Landing page with a bite-sized teaser and a **Play** button. To jump straight
+into the full game:
+
+### 🎮 https://nors3ai.github.io/Orbies/play/
+
+> **Note on the links:** GitHub Pages URLs are **case-sensitive**. The host `nors3ai` is always lowercase, and the path `Orbies` must match the repository name exactly (capital **O**). Use the links exactly as written above — `/orbies/` (lowercase) will **not** work.
 
 ## 🎮 Gameplay Loop & Features
 
@@ -24,11 +29,27 @@ Orbies is an addictive incremental **idle & gacha** game where you break rocks, 
 3. **Build Power** — level up, equip rings, and farm crops.
 4. **Climb the Arena** — battle for weekly leaderboard glory.
 
+## 🗂️ Project structure
+
+The full game is a dependency-free static site (plain HTML/CSS/JS):
+
+| Path | Purpose |
+| --- | --- |
+| `docs/index.html` | Landing page + teaser |
+| `docs/play/index.html` | The full game |
+| `docs/play/styles.css` | Theme & layout |
+| `docs/play/js/util.js` | Formatting & helpers |
+| `docs/play/js/data.js` | Orby roster & tuning |
+| `docs/play/js/state.js` | Save/load & derived stats |
+| `docs/play/js/game.js` | Game logic & tick loop |
+| `docs/play/js/ui.js` | Rendering |
+| `docs/play/js/main.js` | Boot & input |
+
 ## 🚀 Deployment
 
 This site is hosted with **GitHub Pages**, published from the **`/docs` folder** on the **`main`** branch (Settings → Pages → *Deploy from a branch* → `main` `/docs`).
 
-Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**. A `.nojekyll` marker in `docs/` tells Pages to serve the static files as-is, without Jekyll processing.
+Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**. A `.nojekyll` marker in `docs/` tells Pages to serve the static files as-is (including `docs/play/`), without Jekyll processing.
 
 ---
 
