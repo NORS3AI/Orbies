@@ -929,7 +929,8 @@
   // Arena health, scaling with rarity (per the ladder), level, and evolution.
   function orbieHp(ob) { var r = rarityOf(ob); return Math.round((12 + r * 10) * (1 + (ob.level - 1) * 0.35) * evoMult(ob.stage)); }
 
-  function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(2, floor - 1) * (1 + idx * 0.12)); }
+  // Additive scaling: the HP multiplier grows +2 per rock within a floor and +10 per new floor.
+  function rockMaxHp(floor, idx) { return Math.round(8 * (1 + 2 * idx + 10 * (floor - 1))); }
   function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
   function bossMaxHp(floor) { return Math.round(BOSS_BASE_HP * Math.pow(BOSS_GROWTH, floor - 1)); }
   function bossEmoji(floor) { return BOSS_EMOJI[(floor - 1) % BOSS_EMOJI.length]; }
