@@ -338,8 +338,10 @@
   .arena-log .lg { font-size: .78rem; color: var(--ink-soft); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 8px; padding: 4px 10px; }
 
   /* ---- fight screen ---- */
-  .fight { position: fixed; inset: 0; z-index: 60; background: rgba(4,2,12,.94); display: none; align-items: flex-start; justify-content: center; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
-  .fight.show { display: flex; }
+  /* the arena battle overlay — must NOT be the bare `.fight` class, which also
+     appears as the boss button's `.btn.fight` modifier (it would hide it) */
+  .fightscreen { position: fixed; inset: 0; z-index: 60; background: rgba(4,2,12,.94); display: none; align-items: flex-start; justify-content: center; padding: 14px; overflow-y: auto; -webkit-overflow-scrolling: touch; }
+  .fightscreen.show { display: flex; }
   .fight-box { width: 100%; max-width: 640px; margin: auto; display: flex; flex-direction: column; gap: 12px; padding-bottom: 8px; }
   .fight-top { display: flex; align-items: center; justify-content: space-between; }
   .fight-title { font-weight: 800; font-size: 1.15rem; }
@@ -759,7 +761,7 @@
   </div>
 </div>
 
-<div class="fight" id="fightScreen">
+<div class="fightscreen" id="fightScreen">
   <div class="fight-box">
     <div class="fight-top">
       <div class="fight-title">⚔️ Arena Battle</div>
