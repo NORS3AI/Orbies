@@ -233,7 +233,7 @@
 
   /* ---- hatch reveal overlay ---- */
   .reveal {
-    position: fixed; inset: 0; z-index: 60; display: none; place-items: center;
+    position: fixed; inset: 0; z-index: 66; display: none; place-items: center;
     background: rgba(5,4,18,0.72); backdrop-filter: blur(4px);
   }
   .reveal.show { display: grid; }
@@ -781,6 +781,7 @@
     renderAll();
     saveSoon();
     toast("Sold " + nm + " for 🍬" + gain + " treats.");
+    resumeAutoOpenAfterDecision("sold");
   }
 
   function replaceWith(old) {
@@ -799,6 +800,7 @@
     renderAll();
     saveSoon();
     toast("Replaced " + old.n + " with " + neu.n + " · +🍬" + gain + " treats.");
+    resumeAutoOpenAfterDecision("replaced");
   }
 
   function closeReveal() {
@@ -1232,7 +1234,7 @@
   }
 
   /* ---- Auto-Open ---- */
-  var autoOpening = false, autoOpenTimer = null, autoStats = { kept: 0, sold: 0, replaced: 0 };
+  var autoOpening = false, autoWaiting = false, autoOpenTimer = null, autoStats = { kept: 0, sold: 0, replaced: 0 };
 
   function weakestHeld() {
     var w = null, wd = Infinity;
@@ -1267,12 +1269,13 @@
 
   function updateAutoStatus(done) {
     var s = autoStats;
-    el.amStatus.textContent = (done ? "Done — " : "") +
+    var head = done ? "Done — " : (autoWaiting ? "Choose replace or sell… " : "");
+    el.amStatus.textContent = head +
       "orbs left: " + fmt(state.orbs) + " · kept " + s.kept + " · replaced " + s.replaced + " · sold " + s.sold;
   }
 
   function autoOpenStep() {
-    if (!autoOpening) return;
+    if (!autoOpening || autoWaiting) return; // paused while the player decides
     if (state.orbs <= 0) { stopAutoOpen(); return; }
     state.orbs -= 1;
     var ob = makeOrbie();
@@ -1280,26 +1283,29 @@
     if (state.autoKeep[r]) {
       if (state.roster.length < state.holdCap) {
         ob._new = true; state.roster.push(ob); timers[ob.id] = Date.now(); autoStats.kept++;
+        renderAll(); updateAutoStatus(); saveSoon();
       } else {
-        var w = weakestHeld();
-        if (w && orbieDps(ob) > orbieDps(w)) {
-          var idx = state.roster.indexOf(w);
-          state.treats += sellValue(w);
-          delete timers[w.id];
-          ob._new = true;
-          state.roster.splice(idx, 1, ob);
-          timers[ob.id] = Date.now();
-          autoStats.replaced++;
-        } else {
-          state.treats += sellValue(ob); autoStats.sold++; // keeper rarity but no room & not an upgrade
-        }
+        // keeper rarity but hold is full — pause and offer the normal Sell/Replace choice
+        autoWaiting = true;
+        state.pending = ob;
+        renderStats(); saveSoon();
+        updateAutoStatus();
+        showRevealDecide(ob);
       }
     } else {
       state.treats += sellValue(ob); autoStats.sold++; // unchecked rarity -> auto-sell
+      renderAll(); updateAutoStatus(); saveSoon();
     }
-    renderAll();
+  }
+
+  // Called by sellPending/replaceWith when they resolved an auto-open decision.
+  function resumeAutoOpenAfterDecision(kind) {
+    if (!autoWaiting) return;
+    if (kind === "sold") autoStats.sold++; else autoStats.replaced++;
+    autoWaiting = false;
     updateAutoStatus();
-    saveSoon();
+    if (!(autoOpening && state.orbs > 0)) stopAutoOpen(); // nothing left -> finish
+    // otherwise the running interval picks up the next orb
   }
 
   function startAutoOpen() {
@@ -1317,7 +1323,7 @@
   function stopAutoOpen() {
     if (autoOpenTimer) { clearInterval(autoOpenTimer); autoOpenTimer = null; }
     var was = autoOpening;
-    autoOpening = false;
+    autoOpening = false; autoWaiting = false;
     el.amRun.textContent = "▶ Auto-Open";
     el.amRun.classList.remove("danger"); el.amRun.classList.add("primary");
     if (was) updateAutoStatus(true);
