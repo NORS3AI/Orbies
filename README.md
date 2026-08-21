@@ -13,7 +13,8 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 ## 🎮 How it plays
 
 - **🔮 Hatch Orbs** — You start with **5 orbs**. Open each to reveal an Orbie of a random rarity — you never know what you'll get.
-- **🪨 Auto-Battle** — You **can't tap the rock**. Your Orbies do the work: they take turns striking it for DPS, **up to 8 at a time**, and each broken rock pushes you a floor deeper for more gold.
+- **🪨 Auto-Battle** — You **can't tap the rock**. Your Orbies do the work: they take turns striking it for DPS, **up to 8 at a time**. Each floor has **10 rocks**, and rock HP **doubles every floor**.
+- **⚔️ Floors & Bosses** — Clear a floor's 10 rocks, then tap **Fight Boss** for a timed **30-second** fight (Boss 1 = **1000 HP**, scaling each floor). Win and **Descend** to the next floor for an orb payout — **5 orbs per rock (≈50 on floor 1) and +10% each deeper floor**. Run out of time, or hit **Give Up**, and you drop back to the floor to farm and level up before trying again.
 - **🧺 Hold & Sell** — You can hold **3 Orbies to start** (expandable up to 8 with gold). Sell duplicates for **treats**, the currency used to level up your keepers. Every hatch lets you **Keep** the new Orbie or **Sell** it for treats — and you can keep opening even when your hold is full, choosing to **Sell** the new one or **Replace** one you're holding (the replaced Orbie is sold for treats too). The replace list color-codes every held Orbie against the new one — **green** = upgrade, **red** = downgrade, **blue** = same DPS — so you can see at a glance whether it's a good swap.
 - **✨ Level & Evolve** — Spend treats to level up. At **Lv 20** an Orbie can **evolve**, and at **Lv 50** it evolves into its **final form**. Each evolution jumps it **+2 rarities** above its previous form.
 - **📱 Mobile-friendly** — On iOS, pinch-zoom and double-tap-zoom are disabled so taps never accidentally zoom the board.
@@ -25,7 +26,7 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 ### 🔁 The core loop
 
 1. **Hatch** — open orbs to collect new Orbies.
-2. **Battle** — Orbies auto-attack rocks for gold and dive deeper each floor.
+2. **Battle** — Orbies auto-clear 10 rocks per floor, then a timed boss; descend for a pile of orbs.
 3. **Sell** — melt down duplicates into treats.
 4. **Level & Evolve** — pour treats into your best Orbies and evolve them toward Void-born.
 

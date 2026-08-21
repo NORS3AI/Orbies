@@ -448,9 +448,10 @@
   var MAX_ATTACKERS = 8;      // up to 8 Orbies strike at once
   var ROCKS_PER_FLOOR = 10;   // rocks before the floor boss
   var BOSS_TIME_MS = 30000;   // 30-second boss timer
-  var BOSS_BASE_HP = 1000;    // boss 1 HP
-  var BOSS_GROWTH = 1.55;     // boss HP growth per floor
-  var DESCEND_ORB_BONUS = 5;  // free orbs for descending after a boss
+  var BOSS_BASE_HP = 1000;       // boss 1 HP
+  var BOSS_GROWTH = 1.55;        // boss HP growth per floor
+  var DESCEND_ORB_PER_ROCK = 5;  // orbs granted per rock on descend (×10 rocks = 50/floor)
+  var DESCEND_FLOOR_BONUS = 1.10; // orb reward grows +10% per floor
 
   /* ---- derived stat formulas ---- */
   function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
@@ -461,10 +462,12 @@
   function attackInterval(ob) { var r = rarityOf(ob); return Math.max(450, 1050 - r * 45); }
   function orbieDps(ob) { return hitDamage(ob) / (attackInterval(ob) / 1000); }
 
-  function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(1.2, floor - 1) * (1 + idx * 0.12)); }
+  function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(2, floor - 1) * (1 + idx * 0.12)); }
   function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
   function bossMaxHp(floor) { return Math.round(BOSS_BASE_HP * Math.pow(BOSS_GROWTH, floor - 1)); }
   function bossEmoji(floor) { return BOSS_EMOJI[(floor - 1) % BOSS_EMOJI.length]; }
+  // Orbs granted on descending: 5 per rock this floor (×10 = 50), +10% per floor.
+  function descendOrbs(floor) { return Math.round(DESCEND_ORB_PER_ROCK * ROCKS_PER_FLOOR * Math.pow(DESCEND_FLOOR_BONUS, floor - 1)); }
 
   function buyOrbCost() { return Math.round(12 * Math.pow(1.12, state.orbsBought)); }
   function expandCost() { return Math.round(80 * Math.pow(1.8, state.holdCap - 3)); }
@@ -879,13 +882,14 @@
 
   function descend() {
     if (state.phase !== "cleared") return;
+    var reward = descendOrbs(state.floor); // reward for the floor just cleared
     state.floor += 1;
     state.rockIndex = 0;
     state.phase = "rocks";
-    state.orbs += DESCEND_ORB_BONUS;
+    state.orbs += reward;
     state.rockHp = currentRockMax();
     renderAll();
-    toast("⬇️ Descended to Floor " + state.floor + "! +" + DESCEND_ORB_BONUS + " orbs 🔮");
+    toast("⬇️ Descended to Floor " + state.floor + "! +" + reward + " orbs 🔮");
     saveSoon();
   }
 
@@ -969,7 +973,7 @@
       el.progressBtn.className = "btn big fight";
     } else if (ph === "cleared") {
       el.progressBtn.style.display = "";
-      el.progressBtn.textContent = "⬇️ Descend +" + DESCEND_ORB_BONUS;
+      el.progressBtn.textContent = "⬇️ Descend +" + descendOrbs(state.floor);
       el.progressBtn.className = "btn big descend";
     } else {
       el.progressBtn.style.display = "none";
