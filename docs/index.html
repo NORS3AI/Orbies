@@ -1875,7 +1875,7 @@
 
   function autoOpenStep() {
     if (!autoOpening || autoWaiting || state.pending) return; // paused while the player decides
-    if (state.orbs <= 0) return;   // idle in the background until more orbs arrive (e.g. from the farm)
+    if (state.orbs <= 0) { finishAutoOpen(); return; }   // batch done — stop; new orbs stay closed
     state.orbs -= 1;
     var ob = makeOrbie();
     var r = rarityOf(ob);
@@ -1895,6 +1895,10 @@
       state.treats += sellValue(ob); autoStats.sold++; // unchecked rarity -> auto-sell
       renderAll(); updateAutoStatus(); saveSoon();
     }
+    // Opened the last orb of the chosen batch (and not waiting on a choice) -> stop now,
+    // so orbs that arrive later (farm harvests, shop, descend) STAY CLOSED until you
+    // choose to Auto-Open again.
+    if (!autoWaiting && state.orbs <= 0) finishAutoOpen();
   }
 
   // Called by sellPending/replaceWith when they resolved an auto-open decision.
@@ -1912,21 +1916,24 @@
     if (el.autoOpen && el.autoOpen.classList) el.autoOpen.classList.toggle("running", autoOpening);
   }
 
-  // Auto-Open runs in the BACKGROUND: once started it keeps opening orbs across
-  // tabs (and while the menu is closed), idling when you're out of orbs and
-  // resuming automatically as new orbs arrive from the farm.
+  // Auto-Open opens ONLY the orbs you have when you start it. It runs across tabs
+  // and while the menu is closed so a big pile finishes even if you navigate away,
+  // but once the pile is empty it STOPS — orbs that arrive later stay closed until
+  // you choose to Auto-Open again.
   function startAutoOpen() {
     if (state.pending) { toast("Resolve the current hatch first."); return; }
+    if (state.orbs <= 0) { toast("No orbs to open — hatch or buy some first."); return; }
     autoOpening = true; state.autoBg = true;
     autoStats = { kept: 0, sold: 0, replaced: 0 };
     if (!autoOpenTimer) autoOpenTimer = setInterval(autoOpenStep, 200);
     setAutoRunLabel(); updateAutoStatus(); saveSoon();
-    toast("🔁 Auto-Open running in the background.");
+    toast("🔁 Auto-Open — opening your orbs…");
   }
 
-  // Restore the background runner on boot if it was left on.
+  // Resume an interrupted batch on boot (only ever set while a batch is still
+  // draining; a finished batch leaves autoBg false, so nothing auto-opens on load).
   function resumeAutoOpen() {
-    if (!state.autoBg) return;
+    if (!state.autoBg || state.orbs <= 0) { state.autoBg = false; return; }
     autoOpening = true;
     if (!autoOpenTimer) autoOpenTimer = setInterval(autoOpenStep, 200);
     setAutoRunLabel();
@@ -1939,6 +1946,13 @@
     setAutoRunLabel();
     if (was) updateAutoStatus(true);
     saveSoon();
+  }
+
+  // Auto-Open reached the end of the chosen batch — stop and report.
+  function finishAutoOpen() {
+    var opened = autoStats.kept + autoStats.sold + autoStats.replaced;
+    stopAutoOpen();
+    if (opened > 0) toast("✅ Auto-Open finished — " + opened + " orb" + (opened === 1 ? "" : "s") + " opened.");
   }
 
   function openAutoMenu() {
