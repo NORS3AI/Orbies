@@ -504,8 +504,8 @@
   function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
   function bossMaxHp(floor) { return Math.round(BOSS_BASE_HP * Math.pow(BOSS_GROWTH, floor - 1)); }
   function bossEmoji(floor) { return BOSS_EMOJI[(floor - 1) % BOSS_EMOJI.length]; }
-  // Orbs granted on descending: 5 per rock this floor (×10 = 50), +10% per floor.
-  function descendOrbs(floor) { return Math.round(DESCEND_ORB_PER_ROCK * ROCKS_PER_FLOOR * Math.pow(DESCEND_FLOOR_BONUS, floor - 1)); }
+  // Orbs granted per rock when you Descend: 5 base, +10% per floor.
+  function perRockOrbs(floor) { return Math.round(DESCEND_ORB_PER_ROCK * Math.pow(DESCEND_FLOOR_BONUS, floor - 1)); }
 
   function buyOrbCost() { return Math.round(12 * Math.pow(1.12, state.orbsBought)); }
   function expandCost() { return Math.round(80 * Math.pow(1.8, state.holdCap - 3)); }
@@ -569,7 +569,7 @@
           var ph = p.phase;
           // Never resume an in-progress boss across a reload — drop to the gate.
           if (ph === "boss") ph = "gate";
-          if (ph !== "rocks" && ph !== "gate" && ph !== "cleared") ph = "rocks";
+          if (ph !== "rocks" && ph !== "descend" && ph !== "gate" && ph !== "cleared") ph = "rocks";
           state.phase = ph;
           var mh = currentRockMax();
           state.rockHp = (typeof p.rockHp === "number" && p.rockHp > 0) ? Math.min(p.rockHp, mh) : mh;
@@ -860,7 +860,7 @@
      Floor / rock / boss state machine
      ============================================================ */
   function currentRockMax() {
-    var idx = (state.phase === "rocks") ? state.rockIndex : (ROCKS_PER_FLOOR - 1);
+    var idx = (state.phase === "rocks" || state.phase === "descend") ? state.rockIndex : (ROCKS_PER_FLOOR - 1);
     return rockMaxHp(state.floor, Math.min(idx, ROCKS_PER_FLOOR - 1));
   }
 
@@ -870,12 +870,9 @@
     el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
 
     if (state.phase === "rocks") {
-      state.rockIndex += 1;
-      if (state.rockIndex >= ROCKS_PER_FLOOR) {
-        enterGate();
-      } else {
-        state.rockHp = currentRockMax();
-      }
+      // rock cleared — pause on the per-rock Descend reward (don't auto-advance)
+      state.phase = "descend";
+      state.rockHp = 0;
     } else {
       // 'gate' or 'cleared' — keep farming the last rock for gold
       state.rockHp = currentRockMax();
@@ -883,6 +880,24 @@
     renderStats();
     renderPhase();
     saveSoon();
+  }
+
+  // Per-rock Descend: collect the orbs, then move to the next rock (or the boss).
+  function doDescend() {
+    if (state.phase !== "descend") return;
+    var reward = perRockOrbs(state.floor);
+    state.orbs += reward;
+    state.rockIndex += 1;
+    if (state.rockIndex >= ROCKS_PER_FLOOR) {
+      enterGate();
+    } else {
+      state.phase = "rocks";
+      state.rockHp = currentRockMax();
+    }
+    renderStats();
+    renderPhase();
+    saveSoon();
+    toast("⬇️ +" + reward + " orbs 🔮");
   }
 
   function enterGate() {
@@ -912,7 +927,7 @@
     el.rock.classList.remove("pop"); void el.rock.offsetWidth; el.rock.classList.add("pop");
     renderPhase();
     renderStats();
-    toast("🎉 Boss defeated! Tap Descend +5 for 5 free orbs.");
+    toast("🎉 Boss defeated! Tap Next Floor to descend.");
     saveSoon();
   }
 
@@ -935,16 +950,15 @@
     saveSoon();
   }
 
-  function descend() {
+  // After the boss: advance to the next floor (per-rock Descends give the orbs).
+  function nextFloor() {
     if (state.phase !== "cleared") return;
-    var reward = descendOrbs(state.floor); // reward for the floor just cleared
     state.floor += 1;
     state.rockIndex = 0;
     state.phase = "rocks";
-    state.orbs += reward;
     state.rockHp = currentRockMax();
     renderAll();
-    toast("⬇️ Descended to Floor " + state.floor + "! +" + reward + " orbs 🔮");
+    toast("🏆 Descended to Floor " + state.floor + "!");
     saveSoon();
   }
 
@@ -970,6 +984,9 @@
       }
       updateHpBar();
       updateTimer(now);
+    } else if (state.phase === "descend") {
+      // rock cleared — Orbies idle until the player taps Descend
+      updateHpBar();
     } else {
       for (var j = 0; j < atk.length; j++) {
         var o2 = atk[j];
@@ -1015,20 +1032,25 @@
     // floor tag
     var tag = "Floor " + state.floor + " · ";
     if (ph === "rocks") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR;
+    else if (ph === "descend") tag += "Rock " + (state.rockIndex + 1) + "/" + ROCKS_PER_FLOOR + " cleared";
     else if (ph === "gate") tag += "Boss ready";
     else if (ph === "boss") tag += "⚔️ BOSS";
     else tag += "Cleared ✓";
     el.floorTag.textContent = tag;
     el.floorTag.classList.toggle("boss", ph === "boss");
 
-    // progression button (Fight Boss / Descend +5)
-    if (ph === "gate") {
+    // progression button (Descend +N / Fight Boss / Next Floor)
+    if (ph === "descend") {
+      el.progressBtn.style.display = "";
+      el.progressBtn.textContent = "⬇️ Descend +" + perRockOrbs(state.floor);
+      el.progressBtn.className = "btn big descend";
+    } else if (ph === "gate") {
       el.progressBtn.style.display = "";
       el.progressBtn.textContent = "⚔️ Fight Boss";
       el.progressBtn.className = "btn big fight";
     } else if (ph === "cleared") {
       el.progressBtn.style.display = "";
-      el.progressBtn.textContent = "⬇️ Descend +" + descendOrbs(state.floor);
+      el.progressBtn.textContent = "🏆 Next Floor";
       el.progressBtn.className = "btn big descend";
     } else {
       el.progressBtn.style.display = "none";
@@ -1367,8 +1389,9 @@
   el.autoMenu.addEventListener("click", function (e) { if (e.target === el.autoMenu) closeAutoMenu(); });
   el.giveUpBtn.addEventListener("click", giveUp);
   el.progressBtn.addEventListener("click", function () {
-    if (state.phase === "gate") startBoss();
-    else if (state.phase === "cleared") descend();
+    if (state.phase === "descend") doDescend();
+    else if (state.phase === "gate") startBoss();
+    else if (state.phase === "cleared") nextFloor();
   });
   document.getElementById("reset").addEventListener("click", doReset);
 
