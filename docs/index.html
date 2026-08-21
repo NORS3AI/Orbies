@@ -666,23 +666,45 @@
     el.reveal.classList.add("show");
   }
 
-  // Pick which held Orbie to swap out (it is sold for treats).
+  // Compare colors for the replace picker.
+  var CMP_GOOD = "#4ee0a0"; // green — new Orbie is stronger (good replace)
+  var CMP_BAD = "#ff5f6d";  // red — new Orbie is weaker (bad replace)
+  var CMP_SAME = "#58c9ff"; // blue — same DPS
+
+  // Pick which held Orbie to swap out (it is sold for treats). Each row is
+  // color-coded by comparing the NEW Orbie's DPS to that held Orbie's:
+  // green = upgrade, red = downgrade, blue = same.
   function showRevealPick() {
     revealMode = "pick";
-    el.revealMsg.textContent = "Choose an Orbie to replace — it's sold for treats:";
+    el.revealMsg.innerHTML =
+      "Choose an Orbie to replace (it's sold for treats). " +
+      "<b style=\"color:" + CMP_GOOD + "\">Green</b> = upgrade · " +
+      "<b style=\"color:" + CMP_BAD + "\">red</b> = downgrade · " +
+      "<b style=\"color:" + CMP_SAME + "\">blue</b> = same.";
     el.revealActions.innerHTML = "";
+    var newDps = Math.round(orbieDps(state.pending) * 10) / 10;
     var grid = document.createElement("div");
     grid.className = "pick-grid";
     state.roster.forEach(function (old) {
       var r = rarityOf(old);
+      var oldDps = Math.round(orbieDps(old) * 10) / 10;
+      var cmp = newDps > oldDps ? CMP_GOOD : (newDps < oldDps ? CMP_BAD : CMP_SAME);
+      var arrow = newDps > oldDps ? "▲" : (newDps < oldDps ? "▼" : "=");
+      var delta = Math.round((newDps - oldDps) * 10) / 10;
+      var deltaStr = (cmp === CMP_SAME) ? "same" : ((delta > 0 ? "+" : "") + delta + " DPS");
       var item = document.createElement("button");
       item.className = "pick-item";
+      item.style.borderLeft = "4px solid " + cmp; // colored accent bar
+      item.style.background = cmp + "1f";          // faint tint of the compare color
       item.innerHTML =
         '<span class="pe">' + old.e + '</span>' +
         '<span class="pmeta">' +
           '<span class="pn">' + old.n + ' · Lv ' + old.level + '</span>' +
-          '<span class="psub" style="color:' + RARITY_COLORS[r] + '">' + RARITIES[r] +
-            ' · ' + (Math.round(orbieDps(old) * 10) / 10) + ' DPS · sell 🍬' + fmt(sellValue(old)) + '</span>' +
+          '<span class="psub">' +
+            '<span style="color:' + RARITY_COLORS[r] + '">' + RARITIES[r] + '</span> · ' +
+            '<b style="color:' + cmp + '">' + oldDps + ' DPS ' + arrow + ' ' + deltaStr + '</b> · ' +
+            'sell 🍬' + fmt(sellValue(old)) +
+          '</span>' +
         '</span>';
       item.addEventListener("click", function () { replaceWith(old); });
       grid.appendChild(item);
