@@ -26,9 +26,9 @@ Orbies is an addictive incremental **idle & gacha** game where you break rocks, 
 
 ## 🚀 Deployment
 
-This site is hosted with **GitHub Pages** and serves `index.html` from the `main` branch.
+This site is hosted with **GitHub Pages**, published from the **`/docs` folder** on the **`main`** branch (Settings → Pages → *Deploy from a branch* → `main` `/docs`).
 
-Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**.
+Every push to `main` automatically redeploys the live site at **https://nors3ai.github.io/Orbies/**. A `.nojekyll` marker in `docs/` tells Pages to serve the static files as-is, without Jekyll processing.
 
 ---
 
