@@ -659,6 +659,10 @@
       </div>
       <label class="set-row"><input type="checkbox" id="devFlags" /> <span>🎫 Infinite arena flags</span></label>
       <div class="dev-group">
+        <span class="dev-label">🔮 Orbs</span>
+        <button class="btn small" id="devOpenAll">Open All (keep ✓ rarities)</button>
+      </div>
+      <div class="dev-group">
         <span class="dev-label">⏭️ Time</span>
         <button class="btn small" id="devNextDay">Next Day (+24h)</button>
       </div>
@@ -972,11 +976,15 @@
           state.farm = sanitizeFarm(p.farm);
           state.arena = sanitizeArena(p.arena);
           state.floor = Math.max(1, p.floor | 0);
-          state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
+          var savedRi = p.rockIndex | 0;
+          state.rockIndex = clamp(savedRi, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
           // Never resume an in-progress boss across a reload — drop to the gate.
           if (ph === "boss") ph = "gate";
           if (ph !== "rocks" && ph !== "descend" && ph !== "gate" && ph !== "cleared") ph = "rocks";
+          // Safeguard: if every rock was already cleared, land on the boss gate —
+          // never back in the rock grind (prevents a "floor with no boss" state).
+          if ((ph === "rocks" || ph === "descend") && savedRi >= ROCKS_PER_FLOOR) ph = "gate";
           state.phase = ph;
           var mh = currentRockMax();
           state.rockHp = (typeof p.rockHp === "number" && p.rockHp > 0) ? Math.min(p.rockHp, mh) : mh;
@@ -1072,6 +1080,7 @@
     restockTimer: document.getElementById("restockTimer"),
     devFlags: document.getElementById("devFlags"),
     devNextDay: document.getElementById("devNextDay"),
+    devOpenAll: document.getElementById("devOpenAll"),
     tabArena: document.getElementById("tabArena"),
     arenaRankLbl: document.getElementById("arenaRankLbl"),
     arenaFlags: document.getElementById("arenaFlags"),
@@ -1812,6 +1821,33 @@
     el.autoMenu.classList.remove("show");
   }
 
+  // Dev: open EVERY orb at once. Checked rarities (the Auto-Open keep list) are
+  // kept — filling the hold, then replacing the weakest held Orbie when a
+  // stronger keeper appears — and everything else is auto-sold. No prompts.
+  function devOpenAll() {
+    if (state.pending) { toast("Resolve the current hatch first."); return; }
+    if (state.orbs <= 0) { toast("No orbs to open."); return; }
+    var opened = 0, kept = 0, replaced = 0, sold = 0;
+    while (state.orbs > 0) {
+      state.orbs -= 1; opened++;
+      var o = makeOrbie(), r = rarityOf(o);
+      if (state.autoKeep[r]) {
+        if (state.roster.length < state.holdCap) {
+          o._new = true; state.roster.push(o); timers[o.id] = Date.now(); kept++;
+        } else {
+          var weak = weakestHeld();
+          if (weak && orbieDps(o) > orbieDps(weak)) {
+            state.treats += sellValue(weak);
+            state.roster.splice(state.roster.indexOf(weak), 1); delete timers[weak.id];
+            o._new = true; state.roster.push(o); timers[o.id] = Date.now(); replaced++;
+          } else { state.treats += sellValue(o); sold++; }
+        }
+      } else { state.treats += sellValue(o); sold++; }
+    }
+    renderAll(); saveSoon();
+    toast("🔮 Opened " + opened + " · kept " + kept + " · replaced " + replaced + " · sold " + sold);
+  }
+
   function doLevelUp(ob) {
     if (ob.level >= MAX_LEVEL) return;
     var cost = levelUpCost(ob);
@@ -2342,6 +2378,7 @@
   el.devToggle.addEventListener("change", toggleDev);
   el.devFlags.addEventListener("change", toggleDevFlags);
   el.devNextDay.addEventListener("click", advanceDay);
+  el.devOpenAll.addEventListener("click", devOpenAll);
   el.wipeSave.addEventListener("click", function () { doReset(); closeSettings(); });
   el.devPanel.addEventListener("click", function (e) {
     var b = e.target;
