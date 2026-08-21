@@ -201,6 +201,53 @@
   .btn:disabled { opacity: .38; cursor: not-allowed; transform: none; box-shadow: none; }
   .btn .cost { font-size: .78rem; opacity: .9; font-weight: 700; }
 
+  /* ---- tabs ---- */
+  .tabbar { display: flex; gap: 6px; padding-bottom: 8px; }
+  .tab {
+    flex: 1; padding: 9px 6px; border-radius: 11px; font-weight: 800; font-size: .9rem; min-height: 42px;
+    border: 1px solid var(--panel-brd); background: rgba(124,92,255,0.10); color: var(--ink-soft);
+    cursor: pointer; font-family: var(--font);
+  }
+  .tab.active { background: linear-gradient(120deg, var(--violet), var(--pink)); color: #fff; border-color: transparent; }
+  .tab-page { animation: fadein .2s ease; }
+  @keyframes fadein { from { opacity: 0; } to { opacity: 1; } }
+
+  /* ---- farm ---- */
+  .farm-head { display: flex; align-items: baseline; gap: 10px; margin: 14px 0 10px; }
+  .farm-head h2 { margin: 0; font-size: 1.15rem; }
+  .farm-hint { color: var(--ink-soft); font-size: .78rem; margin: 2px 0 12px; text-align: center; }
+  .plots { display: grid; grid-template-columns: repeat(auto-fill, minmax(82px, 1fr)); gap: 8px; margin-bottom: 18px; }
+  .plot {
+    aspect-ratio: 1 / 1; border-radius: 14px; border: 1px solid var(--panel-brd);
+    background: rgba(70,48,26,0.4); display: flex; flex-direction: column; align-items: center; justify-content: center;
+    cursor: pointer; position: relative; overflow: hidden; text-align: center; padding: 4px;
+    color: var(--ink); font-family: var(--font);
+  }
+  .plot.empty { background: repeating-linear-gradient(45deg, rgba(96,64,32,0.32), rgba(96,64,32,0.32) 6px, rgba(74,48,24,0.32) 6px, rgba(74,48,24,0.32) 12px); }
+  .plot.ready { border-color: var(--mint); box-shadow: 0 0 12px rgba(78,224,160,0.4); }
+  .plot .pe { font-size: 30px; line-height: 1; }
+  .plot .plabel { font-size: .58rem; color: var(--ink-soft); margin-top: 2px; }
+  .plot.ready .plabel { color: var(--mint); font-weight: 800; }
+  .plot .pbar { position: absolute; left: 0; bottom: 0; height: 4px; background: var(--mint); }
+  .plot .ptick { position: absolute; top: 3px; right: 5px; color: var(--mint); font-weight: 800; font-size: .8rem; }
+  .plot .empty-plus { font-size: 26px; color: var(--ink-soft); opacity: .55; }
+  .crop-head { display: flex; align-items: baseline; gap: 8px; margin: 6px 0 8px; }
+  .crop-head h3 { margin: 0; font-size: 1rem; }
+  .crop-sub { font-size: .76rem; color: var(--ink-soft); }
+  .crop-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(158px, 1fr)); gap: 8px; margin-bottom: 16px; }
+  .crop {
+    display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 12px; text-align: left;
+    background: rgba(124,92,255,0.08); border: 1px solid var(--panel-brd); cursor: pointer; color: var(--ink); font-family: var(--font);
+  }
+  .crop.sel { border-color: var(--violet-2); background: rgba(124,92,255,0.2); box-shadow: 0 0 0 1px var(--violet-2) inset; }
+  .crop .ce { font-size: 26px; line-height: 1; flex: none; }
+  .crop .cinfo { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+  .crop .cn { font-weight: 800; font-size: .86rem; }
+  .crop .cmeta { font-size: .66rem; color: var(--ink-soft); }
+  .crop .creward { font-size: .72rem; font-weight: 800; }
+  .crop .creward.treats { color: var(--treat); }
+  .crop .creward.orbs { color: var(--violet-2); }
+
   /* ---- roster ---- */
   .roster-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
   .roster-head h2 { margin: 0; font-size: 1.15rem; }
@@ -350,11 +397,16 @@
       <div class="res hold"><span class="ico">🧺</span><div><div class="v" id="rHold">0/3</div><div class="k">Held</div></div></div>
     </div>
   </div>
+  <nav class="wrap tabbar" id="tabbar">
+    <button class="tab active" data-tab="dungeon">⛏️ Dungeon</button>
+    <button class="tab" data-tab="farm">🌱 Farm</button>
+  </nav>
 </header>
 
 <section>
   <div class="wrap">
 
+    <div id="tabDungeon" class="tab-page">
     <div class="arena">
       <div class="arena-top">
         <div class="floor-tag" id="floorTag">Floor 1 · Rock 1/10</div>
@@ -392,6 +444,24 @@
     <p class="empty-note" id="emptyNote" style="display:none;margin-top:8px;">
       You have no Orbies yet — <strong>Open an Orb</strong> above to hatch your first creature!
     </p>
+    </div><!-- /tabDungeon -->
+
+    <div id="tabFarm" class="tab-page" hidden>
+      <div class="farm-head">
+        <h2>🌱 Garden</h2>
+        <span class="cap" id="farmPlotsInfo">Plots 1/32</span>
+      </div>
+      <div class="actions">
+        <button class="btn primary" id="farmMain">🌱 Plant</button>
+        <button class="btn" id="buyPlot">➕ Buy Plot <span class="cost" id="plotCostLbl"></span></button>
+      </div>
+      <div class="farm-hint" id="farmHint"></div>
+      <div class="plots" id="plots"></div>
+      <div class="crop-head"><h3>🥬 Veggies</h3><span class="crop-sub">grow → 🍬 treats</span></div>
+      <div class="crop-list" id="cropVeg"></div>
+      <div class="crop-head"><h3>🌱 Orb Seeds</h3><span class="crop-sub">grow → 🔮 orbs</span></div>
+      <div class="crop-list" id="cropOrb"></div>
+    </div>
 
   </div>
 </section>
@@ -541,6 +611,30 @@
   var DESCEND_ORB_PER_ROCK = 5;  // orbs granted per rock on descend (×10 rocks = 50/floor)
   var DESCEND_FLOOR_BONUS = 1.10; // orb reward grows +10% per floor
 
+  /* ---- Farm ---- */
+  var MAX_PLOTS = 32;
+  var VEG_RENEW_MS = 9 * 3600 * 1000;  // veggie seed stock renews every 9h
+  var ORB_RENEW_MS = 3 * 3600 * 1000;  // orb-seed stock renews every 3h
+  // grow times in SECONDS. cost in gold. reward: treats (veg) or orbs (orb seeds).
+  // max = seed-stock cap (0 = unlimited).
+  var FARM_CROPS = [
+    { id: "lettuce",   n: "Lettuce",       e: "🥬", cat: "veg", kind: "treats", cost: 10,    grow: 10,     reward: 150,     max: 15 },
+    { id: "carrot",    n: "Carrot",        e: "🥕", cat: "veg", kind: "treats", cost: 80,    grow: 900,    reward: 1750,    max: 0  },
+    { id: "tomato",    n: "Tomato",        e: "🍅", cat: "veg", kind: "treats", cost: 300,   grow: 7200,   reward: 16000,   max: 0  },
+    { id: "onion",     n: "Onion",         e: "🧅", cat: "veg", kind: "treats", cost: 1200,  grow: 43200,  reward: 108000,  max: 0  },
+    { id: "potato",    n: "Potato",        e: "🥔", cat: "veg", kind: "treats", cost: 4000,  grow: 86400,  reward: 490000,  max: 0  },
+    { id: "pumpkin",   n: "Pumpkin",       e: "🎃", cat: "veg", kind: "treats", cost: 12000, grow: 259200, reward: 4900000, max: 0  },
+    { id: "glimmerbud",   n: "Glimmerbud",    e: "✨", cat: "orb", kind: "orbs", cost: 250,   grow: 60,     reward: 3,    max: 10 },
+    { id: "veilbloom",    n: "Veilbloom",     e: "🌸", cat: "orb", kind: "orbs", cost: 1000,  grow: 1800,   reward: 15,   max: 6  },
+    { id: "auricbloom",   n: "Auricbloom",    e: "🌼", cat: "orb", kind: "orbs", cost: 2000,  grow: 7200,   reward: 35,   max: 4  },
+    { id: "astraltree",   n: "Astraltree",    e: "🌳", cat: "orb", kind: "orbs", cost: 4000,  grow: 28800,  reward: 80,   max: 2  },
+    { id: "dangerblossom",n: "Dangerblossom", e: "🌺", cat: "orb", kind: "orbs", cost: 10000, grow: 86400,  reward: 300,  max: 3  },
+    { id: "shadowthorn",  n: "Shadowthorn",   e: "🥀", cat: "orb", kind: "orbs", cost: 25000, grow: 259200, reward: 1500, max: 0  }
+  ];
+  var FARM_BY_ID = {};
+  FARM_CROPS.forEach(function (c) { FARM_BY_ID[c.id] = c; });
+  function cropById(id) { return FARM_BY_ID[id] || null; }
+
   /* ---- derived stat formulas ---- */
   function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
   function hitDamage(ob) {
@@ -591,11 +685,42 @@
     return {
       gold: 0, treats: 0, orbs: 5, orbsBought: 0,
       holdCap: 3, roster: [], pending: null, nid: 1,
-      autoKeep: sanitizeAutoKeep(null), devMode: false,
+      autoKeep: sanitizeAutoKeep(null), devMode: false, tab: "dungeon",
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
-      bossHp: 0, bossMaxHp: 0, bossEndsAt: 0
+      bossHp: 0, bossMaxHp: 0, bossEndsAt: 0,
+      farm: freshFarm()
     };
+  }
+
+  function freshFarm() {
+    var stock = {};
+    FARM_CROPS.forEach(function (c) { if (c.max > 0) stock[c.id] = c.max; });
+    return { plotsOwned: 1, plots: [null], selected: "lettuce", stock: stock, vegRenewAt: Date.now(), orbRenewAt: Date.now() };
+  }
+
+  function sanitizeFarm(f) {
+    var base = freshFarm();
+    if (!f || typeof f !== "object") return base;
+    base.plotsOwned = Math.min(MAX_PLOTS, Math.max(1, f.plotsOwned | 0));
+    base.selected = cropById(f.selected) ? f.selected : "lettuce";
+    var arr = Array.isArray(f.plots) ? f.plots : [];
+    base.plots = [];
+    for (var i = 0; i < base.plotsOwned; i++) {
+      var p = arr[i];
+      base.plots.push((p && cropById(p.crop) && typeof p.at === "number") ? { crop: p.crop, at: p.at } : null);
+    }
+    var stock = {};
+    FARM_CROPS.forEach(function (c) {
+      if (c.max > 0) {
+        var s = (f.stock && typeof f.stock[c.id] === "number") ? f.stock[c.id] : c.max;
+        stock[c.id] = Math.min(c.max, Math.max(0, s | 0));
+      }
+    });
+    base.stock = stock;
+    base.vegRenewAt = (typeof f.vegRenewAt === "number" && f.vegRenewAt > 0) ? f.vegRenewAt : Date.now();
+    base.orbRenewAt = (typeof f.orbRenewAt === "number" && f.orbRenewAt > 0) ? f.orbRenewAt : Date.now();
+    return base;
   }
 
   function load() {
@@ -615,6 +740,8 @@
           state.pending = (p.pending && sanitizeOrbie(p.pending)) ? p.pending : null;
           state.autoKeep = sanitizeAutoKeep(p.autoKeep);
           state.devMode = !!p.devMode;
+          state.tab = (p.tab === "farm" || p.tab === "arena") ? p.tab : "dungeon";
+          state.farm = sanitizeFarm(p.farm);
           state.floor = Math.max(1, p.floor | 0);
           state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
@@ -694,6 +821,17 @@
     devPanel: document.getElementById("devPanel"),
     wipeSave: document.getElementById("wipeSave"),
     setClose: document.getElementById("setClose"),
+    tabbar: document.getElementById("tabbar"),
+    tabDungeon: document.getElementById("tabDungeon"),
+    tabFarm: document.getElementById("tabFarm"),
+    farmMain: document.getElementById("farmMain"),
+    buyPlot: document.getElementById("buyPlot"),
+    plotCostLbl: document.getElementById("plotCostLbl"),
+    farmHint: document.getElementById("farmHint"),
+    farmPlotsInfo: document.getElementById("farmPlotsInfo"),
+    plots: document.getElementById("plots"),
+    cropVeg: document.getElementById("cropVeg"),
+    cropOrb: document.getElementById("cropOrb"),
     buyOrb: document.getElementById("buyOrb"),
     buyCost: document.getElementById("buyCost"),
     expandHold: document.getElementById("expandHold"),
@@ -1025,9 +1163,15 @@
   /* ============================================================
      Combat loop
      ============================================================ */
+  var _farmT = 0;
   function tick() {
     var now = Date.now();
     var atk = activeAttackers();
+
+    // farm: refresh seed renewal (~every 2s) and live plot timers (~every 0.5s)
+    _farmT++;
+    if (_farmT % 33 === 0) { if (checkSeedRenewal() && state.tab === "farm") renderCropLists(); }
+    if (state.tab === "farm" && _farmT % 8 === 0) { renderPlots(); renderFarmButtons(); }
 
     if (state.phase === "boss") {
       if (now >= state.bossEndsAt) { bossTimeout(); return; }
@@ -1237,6 +1381,7 @@
     renderRoster();
     syncFighters();
     updateHpBar();
+    if (state.tab === "farm") renderFarm();
   }
 
   function fmt(n) {
@@ -1461,6 +1606,156 @@
   }
 
   /* ============================================================
+     Farm
+     ============================================================ */
+  function plotCost() { return Math.round(1000 * Math.pow(2, state.farm.plotsOwned - 1)); }
+  function plotReadyIdx(i) {
+    var p = state.farm.plots[i];
+    return !!p && (Date.now() - p.at) >= cropById(p.crop).grow * 1000;
+  }
+  function farmDur(s) {
+    if (s < 60) return s + "s";
+    var m = Math.floor(s / 60); if (m < 60) return m + "m";
+    var h = Math.floor(m / 60); if (h < 24) return h + "h";
+    return Math.floor(h / 24) + "d";
+  }
+  function farmCountdown(ms) {
+    var s = Math.ceil(ms / 1000);
+    if (s < 60) return s + "s";
+    var m = Math.floor(s / 60);
+    if (m < 60) return m + "m " + (s % 60) + "s";
+    var h = Math.floor(m / 60);
+    if (h < 24) return h + "h " + (m % 60) + "m";
+    return Math.floor(h / 24) + "d " + (h % 24) + "h";
+  }
+
+  function checkSeedRenewal() {
+    var now = Date.now(), changed = false;
+    if (now - state.farm.vegRenewAt >= VEG_RENEW_MS) {
+      FARM_CROPS.forEach(function (c) { if (c.cat === "veg" && c.max > 0) state.farm.stock[c.id] = c.max; });
+      state.farm.vegRenewAt = now; changed = true;
+    }
+    if (now - state.farm.orbRenewAt >= ORB_RENEW_MS) {
+      FARM_CROPS.forEach(function (c) { if (c.cat === "orb" && c.max > 0) state.farm.stock[c.id] = c.max; });
+      state.farm.orbRenewAt = now; changed = true;
+    }
+    return changed;
+  }
+
+  function renderPlots() {
+    var f = state.farm, now = Date.now(), html = "";
+    for (var i = 0; i < f.plots.length; i++) {
+      var p = f.plots[i];
+      if (!p) { html += '<button class="plot empty" data-i="' + i + '"><span class="empty-plus">＋</span><span class="plabel">plant</span></button>'; continue; }
+      var c = cropById(p.crop), elapsed = now - p.at, total = c.grow * 1000;
+      if (elapsed >= total) {
+        html += '<button class="plot ready" data-i="' + i + '"><span class="ptick">✓</span><span class="pe">' + c.e + '</span><span class="plabel">Harvest</span></button>';
+      } else {
+        var pct = Math.max(0, Math.min(100, elapsed / total * 100));
+        html += '<button class="plot" data-i="' + i + '"><span class="pe" style="opacity:.8">' + c.e + '</span><span class="plabel">' + farmCountdown(total - elapsed) + '</span><span class="pbar" style="width:' + pct.toFixed(1) + '%"></span></button>';
+      }
+    }
+    el.plots.innerHTML = html;
+  }
+
+  function cropCardHtml(c) {
+    var f = state.farm;
+    var sel = f.selected === c.id ? " sel" : "";
+    var seed = c.max > 0 ? ("🌰 " + (f.stock[c.id] || 0) + "/" + c.max) : "🌰 ∞";
+    var rew = c.kind === "treats" ? ("+" + fmt(c.reward) + " 🍬") : ("+" + fmt(c.reward) + " 🔮");
+    return '<button class="crop' + sel + '" data-crop="' + c.id + '">' +
+      '<span class="ce">' + c.e + '</span>' +
+      '<span class="cinfo">' +
+        '<span class="cn">' + c.n + '</span>' +
+        '<span class="cmeta">🪙' + fmt(c.cost) + ' · ' + farmDur(c.grow) + ' · ' + seed + '</span>' +
+        '<span class="creward ' + c.kind + '">' + rew + '</span>' +
+      '</span></button>';
+  }
+
+  function renderCropLists() {
+    el.cropVeg.innerHTML = FARM_CROPS.filter(function (c) { return c.cat === "veg"; }).map(cropCardHtml).join("");
+    el.cropOrb.innerHTML = FARM_CROPS.filter(function (c) { return c.cat === "orb"; }).map(cropCardHtml).join("");
+  }
+
+  function renderFarmButtons() {
+    var f = state.farm, now = Date.now(), ready = 0;
+    for (var i = 0; i < f.plots.length; i++) { if (f.plots[i] && (now - f.plots[i].at) >= cropById(f.plots[i].crop).grow * 1000) ready++; }
+    el.farmPlotsInfo.textContent = "Plots " + f.plotsOwned + "/" + MAX_PLOTS;
+    el.farmMain.textContent = ready > 0 ? ("🧺 Harvest (" + ready + ")") : "🌱 Plant";
+    if (f.plotsOwned >= MAX_PLOTS) { el.plotCostLbl.textContent = "MAX"; el.buyPlot.disabled = true; }
+    else { var pc = plotCost(); el.plotCostLbl.textContent = "🪙" + fmt(pc); el.buyPlot.disabled = state.gold < pc; }
+    var c = cropById(f.selected);
+    el.farmHint.innerHTML = "Planting <b>" + c.e + " " + c.n + "</b> · tap a plot to plant/harvest · long-press <b>Plant</b> for all plots";
+  }
+
+  function renderFarm() { renderPlots(); renderCropLists(); renderFarmButtons(); }
+
+  function selectCrop(id) { if (!cropById(id)) return; state.farm.selected = id; renderFarm(); saveSoon(); }
+
+  function plantInto(i) {
+    var f = state.farm; if (f.plots[i]) return false;
+    var c = cropById(f.selected);
+    if (state.gold < c.cost) { toast("Not enough gold to plant " + c.n + " (🪙" + fmt(c.cost) + ")."); return false; }
+    if (c.max > 0 && (f.stock[c.id] || 0) <= 0) { toast(c.n + " seeds are out — they renew over time."); return false; }
+    state.gold -= c.cost;
+    if (c.max > 0) f.stock[c.id]--;
+    f.plots[i] = { crop: c.id, at: Date.now() };
+    return true;
+  }
+  function harvestPlot(i) {
+    if (!plotReadyIdx(i)) return false;
+    var c = cropById(state.farm.plots[i].crop);
+    if (c.kind === "treats") state.treats += c.reward; else state.orbs += c.reward;
+    state.farm.plots[i] = null;
+    return true;
+  }
+
+  function tapPlot(i) {
+    if (plotReadyIdx(i)) { if (harvestPlot(i)) { renderAll(); saveSoon(); } }
+    else if (!state.farm.plots[i]) { if (plantInto(i)) { renderAll(); saveSoon(); } }
+  }
+
+  function farmMainTap() {
+    var f = state.farm, k;
+    for (k = 0; k < f.plots.length; k++) { if (plotReadyIdx(k)) { harvestPlot(k); renderAll(); saveSoon(); return; } }
+    for (k = 0; k < f.plots.length; k++) { if (!f.plots[k]) { if (plantInto(k)) { renderAll(); saveSoon(); } return; } }
+    toast("No empty plots — buy a plot or wait to harvest.");
+  }
+
+  function farmMainLong() {
+    var f = state.farm, harv = 0, planted = 0, k;
+    for (k = 0; k < f.plots.length; k++) { if (harvestPlot(k)) harv++; }
+    for (k = 0; k < f.plots.length; k++) { if (f.plots[k]) continue; if (plantInto(k)) planted++; else break; }
+    renderAll(); saveSoon();
+    toast("🧺 Harvested " + harv + " · 🌱 Planted " + planted);
+  }
+
+  function doBuyPlot() {
+    var f = state.farm;
+    if (f.plotsOwned >= MAX_PLOTS) { toast("All " + MAX_PLOTS + " plots owned!"); return; }
+    var pc = plotCost();
+    if (state.gold < pc) { toast("Not enough gold for a plot (🪙" + fmt(pc) + ")."); return; }
+    state.gold -= pc; f.plotsOwned++; f.plots.push(null);
+    renderAll(); saveSoon();
+    toast("New plot! (" + f.plotsOwned + "/" + MAX_PLOTS + ")");
+  }
+
+  /* ---- Tabs ---- */
+  function setTab(name) {
+    if (name !== "dungeon" && name !== "farm") name = "dungeon";
+    state.tab = name;
+    el.tabDungeon.hidden = name !== "dungeon";
+    el.tabFarm.hidden = name !== "farm";
+    var btns = el.tabbar.children;
+    for (var i = 0; i < btns.length; i++) {
+      var t = btns[i].getAttribute("data-tab");
+      if (btns[i].classList) btns[i].classList.toggle("active", t === name);
+    }
+    if (name === "farm") { checkSeedRenewal(); renderFarm(); }
+    saveSoon();
+  }
+
+  /* ============================================================
      Wire up + boot
      ============================================================ */
   el.openOrb.addEventListener("click", doOpenOrb);
@@ -1489,8 +1784,44 @@
     if (kind) addResource(kind, parseInt(b.getAttribute("data-amt"), 10));
   });
 
+  // walk up from an event target to the nearest element carrying `attr`
+  function closestAttr(node, attr, stop) {
+    while (node && node !== stop) {
+      if (node.getAttribute) { var v = node.getAttribute(attr); if (v !== null && v !== undefined) return v; }
+      node = node.parentNode;
+    }
+    return null;
+  }
+
+  el.tabbar.addEventListener("click", function (e) {
+    var t = closestAttr(e.target, "data-tab", el.tabbar);
+    if (t) setTab(t);
+  });
+  el.buyPlot.addEventListener("click", doBuyPlot);
+  el.plots.addEventListener("click", function (e) {
+    var i = closestAttr(e.target, "data-i", el.plots);
+    if (i !== null) tapPlot(parseInt(i, 10));
+  });
+  function _cropPick(e, container) {
+    var id = closestAttr(e.target, "data-crop", container);
+    if (id) selectCrop(id);
+  }
+  el.cropVeg.addEventListener("click", function (e) { _cropPick(e, el.cropVeg); });
+  el.cropOrb.addEventListener("click", function (e) { _cropPick(e, el.cropOrb); });
+
+  // Plant/Harvest button: tap = one, long-press = all plots
+  var _fpTimer = null, _fpFired = false;
+  function _fpCancel() { if (_fpTimer) { clearTimeout(_fpTimer); _fpTimer = null; } }
+  el.farmMain.addEventListener("pointerdown", function () { _fpFired = false; _fpTimer = setTimeout(function () { _fpFired = true; farmMainLong(); }, 550); });
+  el.farmMain.addEventListener("pointerup", _fpCancel);
+  el.farmMain.addEventListener("pointerleave", _fpCancel);
+  el.farmMain.addEventListener("pointercancel", _fpCancel);
+  el.farmMain.addEventListener("click", function () { if (_fpFired) { _fpFired = false; return; } farmMainTap(); });
+
   load();
+  checkSeedRenewal();
   renderAll();
+  setTab(state.tab);
   if (state.pending) showPendingDecision(); // resume a hatch decision (keep/sell or sell/replace)
   setInterval(tick, 60);
   setInterval(save, 5000);

@@ -19,6 +19,8 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 - **✨ Level & Evolve** — Spend treats to level up. At **Lv 20** an Orbie can **evolve**, and at **Lv 50** it evolves into its **final form**. Each evolution jumps it **+2 rarities** above its previous form.
 - **📱 Mobile-friendly** — On iOS, pinch-zoom and double-tap-zoom are disabled so taps never accidentally zoom the board.
 
+- **🌱 Farm** — A separate tab with a garden of **plots** (start with 1, buy up to **32**). Grow **6 veggies** (Lettuce → Pumpkin) for **treats** and **6 orb seeds** (Glimmerbud → Shadowthorn) for **orbs**. Each crop costs gold to plant, takes its own time to grow (10s → 3 days), and some have a limited **seed stock** that renews over time (veggies every 9h, orb seeds every 3h). One **Plant/Harvest** button does a single plot; **long-press** it to plant/harvest every plot at once. Crops keep growing while you're away.
+
 ### 🏅 Rarities (low → high)
 
 `Trash · Common · Uncommon · Magic · Rare · Epic · Legendary · Esoteric · Mythic · Relic · Untouched · Phase-bound · Light-sworn · Void-born`
