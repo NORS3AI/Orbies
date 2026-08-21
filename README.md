@@ -21,6 +21,8 @@ Orbies is an incremental **idle & gacha** game. You hatch orbs into tiny creatur
 
 - **🌱 Farm** — A separate tab with a garden of **plots** (start with 1, buy up to **32**). Grow **6 veggies** (Lettuce → Pumpkin) for **treats** and **6 orb seeds** (Glimmerbud → Shadowthorn) for **orbs**. Each crop costs gold to plant, takes its own time to grow (10s → 3 days), and some have a limited **seed stock** that renews over time (veggies every 9h, orb seeds every 3h). One **Plant/Harvest** button does a single plot; **long-press** it to plant/harvest every plot at once. Crops keep growing while you're away.
 
+- **⚔️ Arena** — Battle your held Orbies against a ladder of **NPC teams**. Each Orbie now has **health** scaled by its rarity and level, and fights are simulated turn-by-turn (your team vs. theirs). Climb **15 metal ranks** (Bronze → the top metals), each split into **10 tiers** with **100 positions**; you can only challenge NPCs within **25%** of your rank, colour-coded **green / yellow / red** by difficulty. You get **5 attack flags** that regenerate **1 every 2 minutes**, and each win earns **arena points** (1–5, by how far up the standings the NPC sat). The NPC field **reshuffles every 2 hours**, so there's always a fresh set to fight.
+
 ### 🏅 Rarities (low → high)
 
 `Trash · Common · Uncommon · Magic · Rare · Epic · Legendary · Esoteric · Mythic · Relic · Untouched · Phase-bound · Light-sworn · Void-born`

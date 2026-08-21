@@ -248,6 +248,29 @@
   .crop .creward.treats { color: var(--treat); }
   .crop .creward.orbs { color: var(--violet-2); }
 
+  /* ---- arena ---- */
+  .arena-stats { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+  .astat { background: var(--panel); border: 1px solid var(--panel-brd); border-radius: 11px; padding: 8px 12px; font-size: .9rem; font-weight: 700; }
+  .astat .sub { color: var(--ink-soft); font-size: .72rem; margin-left: 6px; }
+  .npc-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 10px; margin-bottom: 16px; }
+  .npc {
+    background: var(--panel); border: 1px solid var(--panel-brd); border-left: 5px solid var(--panel-brd);
+    border-radius: 14px; padding: 12px 14px; display: flex; flex-direction: column; gap: 8px;
+  }
+  .npc.green { border-left-color: #4ee0a0; }
+  .npc.yellow { border-left-color: #ffce54; }
+  .npc.red { border-left-color: #ff5f6d; }
+  .npc .ntop { display: flex; align-items: baseline; gap: 8px; }
+  .npc .nname { font-weight: 800; font-size: .96rem; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .npc .nrank { font-size: .72rem; color: var(--ink-soft); font-weight: 700; }
+  .npc .nmeta { font-size: .78rem; color: var(--ink-soft); }
+  .npc .ndps { font-weight: 800; }
+  .npc.green .ndps { color: #4ee0a0; } .npc.yellow .ndps { color: #ffce54; } .npc.red .ndps { color: #ff5f6d; }
+  .npc .nbtn { display: flex; gap: 8px; }
+  .npc .nbtn .btn { flex: 1; }
+  .arena-log { display: flex; flex-direction: column; gap: 4px; }
+  .arena-log .lg { font-size: .8rem; color: var(--ink-soft); background: rgba(255,255,255,0.03); border: 1px solid var(--panel-brd); border-radius: 8px; padding: 5px 10px; }
+
   /* ---- roster ---- */
   .roster-head { display: flex; align-items: baseline; gap: 10px; margin: 22px 0 10px; }
   .roster-head h2 { margin: 0; font-size: 1.15rem; }
@@ -400,6 +423,7 @@
   <nav class="wrap tabbar" id="tabbar">
     <button class="tab active" data-tab="dungeon">⛏️ Dungeon</button>
     <button class="tab" data-tab="farm">🌱 Farm</button>
+    <button class="tab" data-tab="arena">⚔️ Arena</button>
   </nav>
 </header>
 
@@ -461,6 +485,21 @@
       <div class="crop-list" id="cropVeg"></div>
       <div class="crop-head"><h3>🌱 Orb Seeds</h3><span class="crop-sub">grow → 🔮 orbs</span></div>
       <div class="crop-list" id="cropOrb"></div>
+    </div>
+
+    <div id="tabArena" class="tab-page" hidden>
+      <div class="farm-head">
+        <h2>⚔️ Arena</h2>
+        <span class="cap" id="arenaRankLbl">Bronze I · #100</span>
+      </div>
+      <div class="arena-stats">
+        <div class="astat">🏴 <b id="arenaFlags">5/5</b><span class="sub" id="arenaFlagTimer"></span></div>
+        <div class="astat">🏅 <b id="arenaPoints">100</b> pts</div>
+        <div class="astat" id="arenaTeamStat">⚔️ 0 · ❤️ 0</div>
+      </div>
+      <div class="farm-hint">Fight NPCs within 25% of your rank. <span style="color:#4ee0a0">green</span>=easy · <span style="color:#ffce54">yellow</span>=risky · <span style="color:#ff5f6d">red</span>=deadly. Beating higher ranks earns more points.</div>
+      <div class="npc-list" id="npcList"></div>
+      <div class="arena-log" id="arenaLog"></div>
     </div>
 
   </div>
@@ -635,6 +674,19 @@
   FARM_CROPS.forEach(function (c) { FARM_BY_ID[c.id] = c; });
   function cropById(id) { return FARM_BY_ID[id] || null; }
 
+  /* ---- Arena ---- */
+  var ARENA_METALS = ["Bronze", "Copper", "Iron", "Steel", "Silver", "Mythril", "Gold", "Platinum", "Obsidian", "Ruby", "Sapphire", "Emerald", "Topaz", "Garnet", "Diamond"];
+  var ARENA_ROMAN = ["I", "II", "III", "IV", "V", "VI", "VII", "VIII", "IX", "X"];
+  var ARENA_MAX_TIER = ARENA_METALS.length * ARENA_ROMAN.length - 1; // 149 (Diamond X)
+  var ARENA_MAX_GSI = (ARENA_MAX_TIER + 1) * 100 - 1;                 // 14999
+  var ARENA_FLAG_MS = 2 * 60 * 1000;   // 1 flag every 2 minutes
+  var ARENA_MAX_FLAGS = 5;
+  var ARENA_RESHUFFLE_MS = 2 * 3600 * 1000; // NPC ladder reshuffles every 2h
+  var ARENA_NAMES = ["Zog", "Kira", "Bramble", "Vex", "Nyx", "Torvin", "Pip", "Grendel", "Luma", "Rask", "Fenn", "Ora", "Dusk", "Wren", "Cade", "Mira", "Volt", "Skarn", "Juno", "Bex", "Thorne", "Halo", "Crux", "Vega", "Onyx", "Sable", "Rune", "Echo", "Gale", "Nova"];
+  function rankName(tier) { var m = Math.floor(tier / 10), t = tier % 10; return ARENA_METALS[Math.min(m, ARENA_METALS.length - 1)] + " " + ARENA_ROMAN[t]; }
+  // deterministic pseudo-random in [0,1) from two integers
+  function hashRand(a, b) { var x = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return x - Math.floor(x); }
+
   /* ---- derived stat formulas ---- */
   function rarityOf(ob) { return Math.min(TOP_RARITY, ob.base + 2 * ob.stage); }
   function hitDamage(ob) {
@@ -643,6 +695,8 @@
   }
   function attackInterval(ob) { var r = rarityOf(ob); return Math.max(450, 1050 - r * 45); }
   function orbieDps(ob) { return hitDamage(ob) / (attackInterval(ob) / 1000); }
+  // Arena health, scaling with rarity (per the ladder) and level.
+  function orbieHp(ob) { var r = rarityOf(ob); return Math.round((12 + r * 10) * (1 + (ob.level - 1) * 0.35)); }
 
   function rockMaxHp(floor, idx) { return Math.round(8 * Math.pow(2, floor - 1) * (1 + idx * 0.12)); }
   function rockReward(floor, idx) { return Math.round(5 * Math.pow(1.18, floor - 1) * (1 + idx * 0.08)) + 2; }
@@ -689,8 +743,27 @@
       floor: 1, rockIndex: 0, phase: "rocks",
       rockHp: rockMaxHp(1, 0),
       bossHp: 0, bossMaxHp: 0, bossEndsAt: 0,
-      farm: freshFarm()
+      farm: freshFarm(),
+      arena: freshArena()
     };
+  }
+
+  function freshArena() {
+    return { tier: 0, pos: 100, points: 100, flags: ARENA_MAX_FLAGS, flagAt: Date.now(), wins: 0, losses: 0, seed: 0, log: [] };
+  }
+  function sanitizeArena(a) {
+    var base = freshArena();
+    if (!a || typeof a !== "object") return base;
+    base.tier = clamp(a.tier | 0, 0, ARENA_MAX_TIER);
+    base.pos = clamp(a.pos | 0 || 100, 1, 100);
+    base.points = Math.max(0, a.points | 0);
+    base.flags = clamp(a.flags | 0, 0, ARENA_MAX_FLAGS);
+    base.flagAt = (typeof a.flagAt === "number" && a.flagAt > 0) ? a.flagAt : Date.now();
+    base.wins = Math.max(0, a.wins | 0);
+    base.losses = Math.max(0, a.losses | 0);
+    base.seed = a.seed | 0;
+    base.log = Array.isArray(a.log) ? a.log.filter(function (x) { return typeof x === "string"; }).slice(0, 6) : [];
+    return base;
   }
 
   function freshFarm() {
@@ -742,6 +815,7 @@
           state.devMode = !!p.devMode;
           state.tab = (p.tab === "farm" || p.tab === "arena") ? p.tab : "dungeon";
           state.farm = sanitizeFarm(p.farm);
+          state.arena = sanitizeArena(p.arena);
           state.floor = Math.max(1, p.floor | 0);
           state.rockIndex = clamp(p.rockIndex | 0, 0, ROCKS_PER_FLOOR - 1);
           var ph = p.phase;
@@ -832,6 +906,14 @@
     plots: document.getElementById("plots"),
     cropVeg: document.getElementById("cropVeg"),
     cropOrb: document.getElementById("cropOrb"),
+    tabArena: document.getElementById("tabArena"),
+    arenaRankLbl: document.getElementById("arenaRankLbl"),
+    arenaFlags: document.getElementById("arenaFlags"),
+    arenaFlagTimer: document.getElementById("arenaFlagTimer"),
+    arenaPoints: document.getElementById("arenaPoints"),
+    arenaTeamStat: document.getElementById("arenaTeamStat"),
+    npcList: document.getElementById("npcList"),
+    arenaLog: document.getElementById("arenaLog"),
     buyOrb: document.getElementById("buyOrb"),
     buyCost: document.getElementById("buyCost"),
     expandHold: document.getElementById("expandHold"),
@@ -1172,6 +1254,8 @@
     _farmT++;
     if (_farmT % 33 === 0) { if (checkSeedRenewal() && state.tab === "farm") renderCropLists(); }
     if (state.tab === "farm" && _farmT % 8 === 0) { renderPlots(); renderFarmButtons(); }
+    // arena: refresh flag regen + timer (~every 1s) while viewing
+    if (state.tab === "arena" && _farmT % 16 === 0) renderArena();
 
     if (state.phase === "boss") {
       if (now >= state.bossEndsAt) { bossTimeout(); return; }
@@ -1332,7 +1416,7 @@
         '<div class="stats">' +
           '<div class="stat"><div class="n">Lv ' + ob.level + '</div><div class="l">Level</div></div>' +
           '<div class="stat"><div class="n dps">' + (Math.round(orbieDps(ob) * 10) / 10) + '</div><div class="l">DPS</div></div>' +
-          '<div class="stat"><div class="n">' + hitDamage(ob) + '</div><div class="l">Hit</div></div>' +
+          '<div class="stat"><div class="n" style="color:#ff8aa0">' + fmt(orbieHp(ob)) + '</div><div class="l">HP</div></div>' +
         '</div>' +
         '<div class="btns"></div>';
 
@@ -1382,6 +1466,7 @@
     syncFighters();
     updateHpBar();
     if (state.tab === "farm") renderFarm();
+    if (state.tab === "arena") renderArena();
   }
 
   function fmt(n) {
@@ -1740,18 +1825,148 @@
     toast("New plot! (" + f.plotsOwned + "/" + MAX_PLOTS + ")");
   }
 
+  /* ============================================================
+     Arena
+     ============================================================ */
+  function teamHp() { return activeAttackers().reduce(function (s, o) { return s + orbieHp(o); }, 0); }
+  function playerGsi() { return state.arena.tier * 100 + (100 - state.arena.pos); }
+  function arenaSeed() { return Math.floor(Date.now() / ARENA_RESHUFFLE_MS); }
+
+  function regenFlags() {
+    var a = state.arena, now = Date.now();
+    if (a.flags >= ARENA_MAX_FLAGS) { a.flagAt = now; return; }
+    var gained = Math.floor((now - a.flagAt) / ARENA_FLAG_MS);
+    if (gained > 0) {
+      a.flags = Math.min(ARENA_MAX_FLAGS, a.flags + gained);
+      a.flagAt = a.flags >= ARENA_MAX_FLAGS ? now : a.flagAt + gained * ARENA_FLAG_MS;
+    }
+  }
+
+  function npcPowerAt(g, seed, i) {
+    var base = 6 * Math.pow(1.06, g / 10);         // scales with global rank
+    var dps = Math.max(1, Math.round(base * (0.8 + hashRand(seed + g, i) * 0.5)));
+    var hp = Math.round(dps * (14 + hashRand(seed, g + i * 7) * 22));
+    return { dps: dps, hp: hp };
+  }
+  function npcName(seed, i, g) {
+    var a = ARENA_NAMES[Math.floor(hashRand(seed + i, g) * ARENA_NAMES.length) % ARENA_NAMES.length];
+    return a + " " + (100 + Math.floor(hashRand(seed, g + i) * 900));
+  }
+
+  // Offer NPCs within ±25% of the player's global rank (mix of easy/hard).
+  function genNpcs() {
+    var pg = playerGsi(), seed = arenaSeed(), out = [], n = 6;
+    var range = Math.max(50, pg * 0.25);
+    for (var i = 0; i < n; i++) {
+      var frac = (n === 1) ? 0 : (i / (n - 1)) - 0.5;   // -0.5..0.5
+      var g = Math.round(pg + frac * 2 * range);
+      g = Math.max(0, Math.min(ARENA_MAX_GSI, g));
+      var pw = npcPowerAt(g, seed, i);
+      var tier = Math.floor(g / 100), pos = 100 - (g % 100);
+      out.push({ i: i, gsi: g, tier: tier, pos: pos, name: npcName(seed, i, g), dps: pw.dps, hp: pw.hp });
+    }
+    return out;
+  }
+
+  function npcDifficulty(npc) {
+    var pPow = teamDps() * Math.max(1, teamHp()), nPow = npc.dps * Math.max(1, npc.hp);
+    var ratio = nPow / Math.max(1, pPow);
+    if (ratio < 0.7) return "green";
+    if (ratio < 1.3) return "yellow";
+    return "red";
+  }
+  function npcPoints(npc) { var p = npc.pos; if (p <= 10) return 5; if (p <= 25) return 4; if (p <= 50) return 3; if (p <= 75) return 2; return 1; }
+
+  // Turn-based sim: Orbies deal combined DPS to the NPC each round; the NPC
+  // deals its DPS to the front living Orbie. Ends when the NPC or the team dies.
+  function simBattle(npc) {
+    var team = activeAttackers().map(function (o) { return { hp: orbieHp(o), dps: orbieDps(o) }; });
+    if (team.length === 0) return { win: false, alive: 0, total: 0 };
+    var npcHp = npc.hp, rounds = 0;
+    while (npcHp > 0 && rounds < 500) {
+      rounds++;
+      var dps = 0, k;
+      for (k = 0; k < team.length; k++) if (team[k].hp > 0) dps += team[k].dps;
+      if (dps <= 0) break;
+      npcHp -= dps;
+      if (npcHp <= 0) break;
+      var dmg = npc.dps;
+      for (k = 0; k < team.length && dmg > 0; k++) {
+        if (team[k].hp <= 0) continue;
+        var ab = Math.min(team[k].hp, dmg); team[k].hp -= ab; dmg -= ab;
+      }
+    }
+    var alive = 0;
+    for (var j = 0; j < team.length; j++) if (team[j].hp > 0) alive++;
+    return { win: npcHp <= 0 && alive > 0, alive: alive, total: team.length };
+  }
+
+  function arenaFight(npc) {
+    regenFlags();
+    var a = state.arena;
+    if (activeAttackers().length === 0) { toast("Hatch some Orbies before fighting."); return; }
+    if (a.flags <= 0) { toast("Out of attack flags — 1 returns every 2 min."); return; }
+    a.flags--;
+    var res = simBattle(npc);
+    if (res.win) {
+      var pts = npcPoints(npc);
+      a.points += pts; a.wins++;
+      a.pos -= 1;
+      if (a.pos < 1) {
+        if (a.tier < ARENA_MAX_TIER) { a.tier++; a.pos = 100; toast("⬆ Ranked up to " + rankName(a.tier) + "!"); }
+        else a.pos = 1;
+      }
+      a.log.unshift("🏆 Beat " + npc.name + " · +" + pts + " pts · " + res.alive + "/" + res.total + " survived");
+    } else {
+      a.losses++;
+      a.log.unshift("💥 Lost to " + npc.name + (res.total ? " · team wiped" : ""));
+    }
+    a.log = a.log.slice(0, 6);
+    renderArena(); renderStats(); saveSoon();
+  }
+
+  function renderArena() {
+    var a = state.arena;
+    regenFlags();
+    // reshuffle notice
+    var s = arenaSeed();
+    if (a.seed !== s) { a.seed = s; if (a._greeted) toast("🔀 The arena ladder reshuffled — new challengers!"); a._greeted = true; }
+    el.arenaRankLbl.textContent = rankName(a.tier) + " · #" + a.pos;
+    el.arenaFlags.textContent = a.flags + "/" + ARENA_MAX_FLAGS;
+    if (a.flags >= ARENA_MAX_FLAGS) el.arenaFlagTimer.textContent = "full";
+    else { var left = Math.max(0, ARENA_FLAG_MS - (Date.now() - a.flagAt)); el.arenaFlagTimer.textContent = "+1 in " + Math.ceil(left / 1000) + "s"; }
+    el.arenaPoints.textContent = fmt(a.points);
+    el.arenaTeamStat.textContent = "⚔️ " + fmt(Math.round(teamDps())) + " dps · ❤️ " + fmt(teamHp()) + " hp";
+
+    var npcs = genNpcs();
+    el.npcList.innerHTML = npcs.map(function (npc) {
+      var diff = npcDifficulty(npc);
+      return '<div class="npc ' + diff + '" data-npc="' + npc.i + '">' +
+        '<div class="ntop"><span class="nname">' + npc.name + '</span><span class="nrank">' + rankName(npc.tier) + ' #' + npc.pos + '</span></div>' +
+        '<div class="nmeta">Total <span class="ndps">' + fmt(npc.dps) + ' DPS</span> · ❤️ ' + fmt(npc.hp) + ' · worth +' + npcPoints(npc) + ' pts</div>' +
+        '<div class="nbtn"><button class="btn small" data-npc="' + npc.i + '">⚔️ Fight</button></div>' +
+        '</div>';
+    }).join("");
+    el.arenaLog.innerHTML = a.log.map(function (l) { return '<div class="lg">' + l + '</div>'; }).join("");
+    // stash current npc list for click handling
+    _arenaNpcs = npcs;
+  }
+  var _arenaNpcs = [];
+
   /* ---- Tabs ---- */
   function setTab(name) {
-    if (name !== "dungeon" && name !== "farm") name = "dungeon";
+    if (name !== "dungeon" && name !== "farm" && name !== "arena") name = "dungeon";
     state.tab = name;
     el.tabDungeon.hidden = name !== "dungeon";
     el.tabFarm.hidden = name !== "farm";
+    el.tabArena.hidden = name !== "arena";
     var btns = el.tabbar.children;
     for (var i = 0; i < btns.length; i++) {
       var t = btns[i].getAttribute("data-tab");
       if (btns[i].classList) btns[i].classList.toggle("active", t === name);
     }
     if (name === "farm") { checkSeedRenewal(); renderFarm(); }
+    if (name === "arena") { renderArena(); }
     saveSoon();
   }
 
@@ -1808,6 +2023,10 @@
   }
   el.cropVeg.addEventListener("click", function (e) { _cropPick(e, el.cropVeg); });
   el.cropOrb.addEventListener("click", function (e) { _cropPick(e, el.cropOrb); });
+  el.npcList.addEventListener("click", function (e) {
+    var idx = closestAttr(e.target, "data-npc", el.npcList);
+    if (idx !== null) { var npc = _arenaNpcs[parseInt(idx, 10)]; if (npc) arenaFight(npc); }
+  });
 
   // Plant/Harvest button: tap = one, long-press = all plots
   var _fpTimer = null, _fpFired = false;
